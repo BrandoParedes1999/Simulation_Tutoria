@@ -37,8 +37,8 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6" x-data="{ menuAbierto: false }">
         <div class="h-16 flex items-center justify-between">
 
-            {{-- Logo --}}
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 flex-shrink-0">
+            {{-- Logo con wire:navigate --}}
+            <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-2.5 flex-shrink-0">
                 <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center shadow-md">
                     @svg('lucide-graduation-cap', 'w-5 h-5 text-white')
                 </div>
@@ -50,16 +50,12 @@
                 </span>
             </a>
 
-            {{-- Navegación desktop --}}
+            {{-- Navegación desktop con wire:navigate --}}
             <nav class="hidden lg:flex gap-1 flex-1 justify-center max-w-2xl">
                 @foreach ($links as $link)
-                    
-                        href="{{ route($link['ruta']) }}"
-                        class="px-3 py-1.5 rounded-md text-sm transition-all duration-200 flex items-center gap-1.5
-                            {{ request()->routeIs($link['ruta'])
-                                ? 'bg-blue-700 text-white font-medium shadow-sm'
-                                : 'text-blue-200 hover:text-white hover:bg-blue-800' }}"
-                    >
+                    <a href="{{ route($link['ruta']) }}"
+                       wire:navigate
+                       class="px-3 py-1.5 rounded-md text-sm transition-all duration-200 flex items-center gap-1.5 {{ request()->routeIs($link['ruta']) ? 'bg-blue-700 text-white font-medium shadow-sm' : 'text-blue-200 hover:text-white hover:bg-blue-800' }}">
                         @svg($link['icon'], 'w-4 h-4')
                         {{ $link['label'] }}
                     </a>
@@ -82,24 +78,21 @@
                     </div>
                 </div>
 
+                {{-- ❌ El logout NO lleva wire:navigate --}}
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button
-                        type="submit"
-                        class="p-2 rounded-lg text-blue-200 hover:text-white hover:bg-blue-800 transition-colors"
-                        title="Cerrar sesión"
-                    >
+                    <button type="submit"
+                            class="p-2 rounded-lg text-blue-200 hover:text-white hover:bg-blue-800 transition-colors"
+                            title="Cerrar sesión">
                         @svg('lucide-log-out', 'w-4 h-4')
                     </button>
                 </form>
             </div>
 
             {{-- Botón usuario móvil --}}
-            <button
-                @click="menuAbierto = !menuAbierto"
-                class="lg:hidden p-2 rounded-lg text-white hover:bg-blue-800 transition-colors"
-                aria-label="Menú"
-            >
+            <button @click="menuAbierto = !menuAbierto"
+                    class="lg:hidden p-2 rounded-lg text-white hover:bg-blue-800 transition-colors"
+                    aria-label="Menú">
                 <div class="flex items-center gap-2">
                     @if($user->foto)
                         <img src="{{ $user->foto }}" class="w-7 h-7 rounded-full ring-2 ring-blue-500 object-cover" alt="{{ $user->name }}">
@@ -113,39 +106,37 @@
             </button>
         </div>
 
-        {{-- Menú desplegable móvil (usuario) --}}
-        <div
-            x-show="menuAbierto"
-            x-cloak
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 -translate-y-2"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 -translate-y-2"
-            @click.away="menuAbierto = false"
-            class="lg:hidden pb-4 border-t border-blue-800 -mx-4 sm:-mx-6 px-4 sm:px-6 bg-blue-900"
-        >
+        {{-- Menú desplegable móvil --}}
+        <div x-show="menuAbierto"
+             x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             @click.away="menuAbierto = false"
+             class="lg:hidden pb-4 border-t border-blue-800 -mx-4 sm:-mx-6 px-4 sm:px-6 bg-blue-900">
+
             <div class="py-3">
                 <p class="text-sm font-medium text-white">{{ $user->name }}</p>
                 <p class="text-xs text-blue-300 mt-0.5">{{ $rolLabel }}</p>
             </div>
 
             <div class="space-y-1">
-                
-                    href="{{ route('profile.edit') }}"
-                    class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-blue-200 hover:text-white hover:bg-blue-800 transition-colors"
-                >
+                {{-- Perfil SÍ lleva wire:navigate --}}
+                <a href="{{ route('profile.edit') }}"
+                   wire:navigate
+                   class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-blue-200 hover:text-white hover:bg-blue-800 transition-colors">
                     @svg('lucide-user-circle', 'w-4 h-4')
                     Mi perfil
                 </a>
 
+                {{-- ❌ El logout NO lleva wire:navigate --}}
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button
-                        type="submit"
-                        class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-blue-200 hover:text-white hover:bg-blue-800 transition-colors text-left"
-                    >
+                    <button type="submit"
+                            class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-blue-200 hover:text-white hover:bg-blue-800 transition-colors text-left">
                         @svg('lucide-log-out', 'w-4 h-4')
                         Cerrar sesión
                     </button>

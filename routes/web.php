@@ -11,28 +11,18 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// ── Dashboard inteligente: redirige según el rol del usuario ──
+// ── Dashboard inteligente: redirige según el rol ──
 Route::get('/dashboard', function () {
     $user = auth()->user();
     
-    if ($user->esAlumno()) {
-        return redirect()->route('alumno.dashboard');
-    }
-    
-    if ($user->esTutor()) {
-        return redirect()->route('tutor.dashboard');
-    }
-    
-    if ($user->esAdmin()) {
-        return redirect()->route('admin.dashboard');
-    }
+    if ($user->esAlumno()) return redirect()->route('alumno.dashboard');
+    if ($user->esTutor()) return redirect()->route('tutor.dashboard');
+    if ($user->esAdmin()) return redirect()->route('admin.dashboard');
     
     abort(403, 'Rol no reconocido');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware('auth')->name('dashboard');
 
-// ═══════════════════════════════════════════════════════════
-// RUTAS DEL ALUMNO
-// ═══════════════════════════════════════════════════════════
+// ═══ ALUMNO ═══
 Route::middleware(['auth', 'rol:alumno'])
     ->prefix('alumno')
     ->name('alumno.')
@@ -45,24 +35,20 @@ Route::middleware(['auth', 'rol:alumno'])
         Route::view('/mensajes', 'alumno.mensajes')->name('mensajes');
     });
 
-// ═══════════════════════════════════════════════════════════
-// RUTAS DEL TUTOR
-// ═══════════════════════════════════════════════════════════
+// ═══ TUTOR ═══
 Route::middleware(['auth', 'rol:tutor'])
     ->prefix('tutor')
     ->name('tutor.')
     ->group(function () {
         Route::view('/dashboard', 'tutor.dashboard')->name('dashboard');
         Route::view('/alumnos', 'tutor.alumnos')->name('alumnos');
-        Route::view('/alumnos/{id}', 'tutor.alumno-detalle')->name('alumno-detalle');
+        Route::get('/alumnos/{id}', fn($id) => view('tutor.alumno-detalle', ['id' => $id]))->name('alumno-detalle');
         Route::view('/alertas', 'tutor.alertas')->name('alertas');
         Route::view('/mensajes', 'tutor.mensajes')->name('mensajes');
         Route::view('/reportes', 'tutor.reportes')->name('reportes');
     });
 
-// ═══════════════════════════════════════════════════════════
-// RUTAS DEL ADMIN
-// ═══════════════════════════════════════════════════════════
+// ═══ ADMIN ═══
 Route::middleware(['auth', 'rol:admin'])
     ->prefix('admin')
     ->name('admin.')
@@ -71,7 +57,7 @@ Route::middleware(['auth', 'rol:admin'])
         Route::view('/usuarios', 'admin.usuarios')->name('usuarios');
     });
 
-// ── Perfil (común para todos los roles) ──
+// ── Perfil (común) ──
 Route::middleware('auth')->group(function () {
     Route::get('/perfil', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/perfil', [ProfileController::class, 'update'])->name('profile.update');

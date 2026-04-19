@@ -29,11 +29,8 @@
     <div class="grid grid-cols-5 max-w-lg mx-auto">
         @foreach($links as $link)
             @php $activo = request()->routeIs($link['ruta']); @endphp
-            
-                href="{{ route($link['ruta']) }}"
-                class="flex flex-col items-center justify-center gap-1 py-2.5 transition-colors relative
-                    {{ $activo ? 'text-blue-700' : 'text-blue-400 hover:text-blue-600' }}"
-            >
+            <a href="{{ route($link['ruta']) }}"
+               class="flex flex-col items-center justify-center gap-1 py-2.5 transition-colors relative {{ $activo ? 'text-blue-700' : 'text-blue-400 hover:text-blue-600' }}">
                 @if($activo)
                     <span class="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-blue-700 rounded-b-full"></span>
                 @endif
