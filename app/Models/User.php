@@ -1,49 +1,34 @@
 <?php
-
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
-{
-    /** @use HasFactory<UserFactory> */
+class User extends Authenticatable {
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'name', 'email', 'password', 'rol', 'foto', 'telefono', 'activo',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
+    protected $hidden = ['password', 'remember_token'];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'activo' => 'boolean',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    // Relaciones
+    public function alumno() { return $this->hasOne(Alumno::class, 'usuario_id'); }
+    public function tutor() { return $this->hasOne(Tutor::class, 'usuario_id'); }
+    public function mensajesEnviados() { return $this->hasMany(Mensaje::class, 'remitente_id'); }
+    public function mensajesRecibidos() { return $this->hasMany(Mensaje::class, 'destinatario_id'); }
+
+    // Helpers de rol
+    public function esAlumno(): bool { return $this->rol === 'alumno'; }
+    public function esTutor(): bool { return $this->rol === 'tutor'; }
+    public function esAdmin(): bool { return $this->rol === 'admin'; }
 }

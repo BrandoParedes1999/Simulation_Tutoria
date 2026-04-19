@@ -1,0 +1,202 @@
+<?php
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\MateriaMalla;
+
+class MateriaMallaSeeder extends Seeder {
+    public function run(): void {
+        $carreraId = 1;
+
+        $materias = [
+            // ═══ SEMESTRE 1 — BÁSICO ═══
+            ['clave' => 'TCOE101', 'nombre' => 'Taller de Comunicación Oral y Escrita',
+             'total_horas' => 64, 'creditos' => 4, 'semestre' => 1,
+             'nivel' => 'basico', 'area' => 'ciencias_sociales_humanidades'],
+            ['clave' => 'RL101', 'nombre' => 'Razonamiento Lógico',
+             'total_horas' => 64, 'creditos' => 4, 'semestre' => 1,
+             'nivel' => 'basico', 'area' => 'ciencias_sociales_humanidades'],
+            ['clave' => 'QG101', 'nombre' => 'Química General',
+             'total_horas' => 96, 'creditos' => 6, 'semestre' => 1,
+             'nivel' => 'basico', 'area' => 'matematicas_ciencias_basicas'],
+            ['clave' => 'LEE101', 'nombre' => 'La Empresa y su Entorno',
+             'total_horas' => 80, 'creditos' => 5, 'semestre' => 1,
+             'nivel' => 'basico', 'area' => 'entorno_social'],
+            ['clave' => 'PROG101', 'nombre' => 'Programación I',
+             'total_horas' => 128, 'creditos' => 8, 'semestre' => 1,
+             'nivel' => 'basico', 'area' => 'programacion'],
+            ['clave' => 'TMI101', 'nombre' => 'Tecnologías y Manejo de la Información',
+             'total_horas' => 64, 'creditos' => 4, 'semestre' => 1,
+             'nivel' => 'basico', 'area' => 'otras_ciencias'],
+
+            // ═══ SEMESTRE 2 — BÁSICO ═══
+            ['clave' => 'AL201', 'nombre' => 'Álgebra Lineal',
+             'total_horas' => 96, 'creditos' => 6, 'semestre' => 2,
+             'nivel' => 'basico', 'area' => 'matematicas_ciencias_basicas'],
+            ['clave' => 'PROG201', 'nombre' => 'Programación II',
+             'total_horas' => 128, 'creditos' => 8, 'semestre' => 2,
+             'nivel' => 'basico', 'area' => 'programacion'],
+            ['clave' => 'BD201', 'nombre' => 'Bases de Datos I',
+             'total_horas' => 96, 'creditos' => 6, 'semestre' => 2,
+             'nivel' => 'basico', 'area' => 'tratamiento_informacion'],
+            ['clave' => 'DS201', 'nombre' => 'Desarrollo Sustentable',
+             'total_horas' => 32, 'creditos' => 2, 'semestre' => 2,
+             'nivel' => 'basico', 'area' => 'otras_ciencias'],
+
+            // ═══ SEMESTRE 3 — BÁSICO ═══
+            ['clave' => 'ING301', 'nombre' => 'Inglés I',
+             'total_horas' => 64, 'creditos' => 4, 'semestre' => 3,
+             'nivel' => 'basico', 'area' => 'ciencias_sociales_humanidades'],
+            ['clave' => 'CD301', 'nombre' => 'Cálculo Diferencial',
+             'total_horas' => 112, 'creditos' => 7, 'semestre' => 3,
+             'nivel' => 'basico', 'area' => 'matematicas_ciencias_basicas'],
+            ['clave' => 'MD301', 'nombre' => 'Matemáticas Discretas',
+             'total_horas' => 112, 'creditos' => 7, 'semestre' => 3,
+             'nivel' => 'basico', 'area' => 'matematicas_ciencias_basicas'],
+            ['clave' => 'CF301', 'nombre' => 'Contabilidad Financiera',
+             'total_horas' => 128, 'creditos' => 8, 'semestre' => 3,
+             'nivel' => 'basico', 'area' => 'entorno_social'],
+            ['clave' => 'ED301', 'nombre' => 'Estructura de Datos',
+             'total_horas' => 96, 'creditos' => 6, 'semestre' => 3,
+             'nivel' => 'basico', 'area' => 'programacion'],
+            ['clave' => 'BD301', 'nombre' => 'Bases de Datos II',
+             'total_horas' => 96, 'creditos' => 6, 'semestre' => 3,
+             'nivel' => 'basico', 'area' => 'tratamiento_informacion'],
+
+            // ═══ SEMESTRE 4 — BÁSICO ═══
+            ['clave' => 'ING401', 'nombre' => 'Inglés II',
+             'total_horas' => 64, 'creditos' => 4, 'semestre' => 4,
+             'nivel' => 'basico', 'area' => 'ciencias_sociales_humanidades'],
+            ['clave' => 'CI401', 'nombre' => 'Cálculo Integral',
+             'total_horas' => 112, 'creditos' => 7, 'semestre' => 4,
+             'nivel' => 'basico', 'area' => 'matematicas_ciencias_basicas'],
+            ['clave' => 'PE401', 'nombre' => 'Probabilidad y Estadística',
+             'total_horas' => 112, 'creditos' => 7, 'semestre' => 4,
+             'nivel' => 'basico', 'area' => 'matematicas_ciencias_basicas'],
+            ['clave' => 'FC401', 'nombre' => 'Física para Computación',
+             'total_horas' => 96, 'creditos' => 6, 'semestre' => 4,
+             'nivel' => 'basico', 'area' => 'matematicas_ciencias_basicas'],
+            ['clave' => 'CP401', 'nombre' => 'Costos y Presupuestos',
+             'total_horas' => 80, 'creditos' => 5, 'semestre' => 4,
+             'nivel' => 'basico', 'area' => 'entorno_social'],
+            ['clave' => 'POO401', 'nombre' => 'Programación Orientada a Objetos',
+             'total_horas' => 112, 'creditos' => 7, 'semestre' => 4,
+             'nivel' => 'basico', 'area' => 'programacion'],
+            ['clave' => 'ADS401', 'nombre' => 'Análisis y Diseño de Sistemas I',
+             'total_horas' => 128, 'creditos' => 8, 'semestre' => 4,
+             'nivel' => 'basico', 'area' => 'tratamiento_informacion'],
+            ['clave' => 'SO401', 'nombre' => 'Sistemas Operativos I',
+             'total_horas' => 96, 'creditos' => 6, 'semestre' => 4,
+             'nivel' => 'basico', 'area' => 'software_base'],
+
+            // ═══ SEMESTRE 5 — PROFESIONALIZANTE ═══
+            ['clave' => 'ING501', 'nombre' => 'Inglés III',
+             'total_horas' => 64, 'creditos' => 4, 'semestre' => 5,
+             'nivel' => 'profesionalizante', 'area' => 'ciencias_sociales_humanidades'],
+            ['clave' => 'TS501', 'nombre' => 'Teoría de Señales',
+             'total_horas' => 96, 'creditos' => 6, 'semestre' => 5,
+             'nivel' => 'profesionalizante', 'area' => 'arquitectura_computadoras'],
+            ['clave' => 'SEE501', 'nombre' => 'Sistemas Eléctricos y Electrónicos',
+             'total_horas' => 96, 'creditos' => 6, 'semestre' => 5,
+             'nivel' => 'profesionalizante', 'area' => 'arquitectura_computadoras'],
+            ['clave' => 'PV501', 'nombre' => 'Programación Visual',
+             'total_horas' => 96, 'creditos' => 6, 'semestre' => 5,
+             'nivel' => 'profesionalizante', 'area' => 'programacion'],
+            ['clave' => 'ADS501', 'nombre' => 'Análisis y Diseño de Sistemas II',
+             'total_horas' => 128, 'creditos' => 8, 'semestre' => 5,
+             'nivel' => 'profesionalizante', 'area' => 'tratamiento_informacion'],
+
+            // ═══ SEMESTRE 6 — PROFESIONALIZANTE ═══
+            ['clave' => 'ING601', 'nombre' => 'Inglés IV',
+                'total_horas' => 64, 'creditos' => 4, 'semestre' => 6,
+                'nivel' => 'profesionalizante', 'area' => 'ciencias_sociales_humanidades'],
+            ['clave' => 'EMP601', 'nombre' => 'Emprendedores',
+                'total_horas' => 64, 'creditos' => 4, 'semestre' => 6,
+                'nivel' => 'profesionalizante', 'area' => 'ciencias_sociales_humanidades'],
+            ['clave' => 'IO601', 'nombre' => 'Investigación de Operaciones',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 6,
+                'nivel' => 'profesionalizante', 'area' => 'matematicas_ciencias_basicas'],
+            ['clave' => 'AC601', 'nombre' => 'Arquitectura de Computadoras',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 6,
+                'nivel' => 'profesionalizante', 'area' => 'arquitectura_computadoras'],
+            ['clave' => 'SD601', 'nombre' => 'Sistemas Digitales',
+                'total_horas' => 128, 'creditos' => 8, 'semestre' => 6,
+                'nivel' => 'profesionalizante', 'area' => 'arquitectura_computadoras'],
+            ['clave' => 'RC601', 'nombre' => 'Redes de Computadoras I',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 6,
+                'nivel' => 'profesionalizante', 'area' => 'redes'],
+            ['clave' => 'LE601', 'nombre' => 'Lenguaje Ensamblador',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 6,
+                'nivel' => 'profesionalizante', 'area' => 'software_base'],
+            ['clave' => 'IS601', 'nombre' => 'Ingeniería de Software',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 6,
+                'nivel' => 'profesionalizante', 'area' => 'programacion'],
+            ['clave' => 'OPT601', 'nombre' => 'Optativo I',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 6,
+                'nivel' => 'profesionalizante', 'area' => 'optativos', 'tipo' => 'optativa'],
+
+            // ═══ SEMESTRE 7 — TERMINAL ═══
+            ['clave' => 'AFI701', 'nombre' => 'Actividades de Formación Integral',
+                'total_horas' => 128, 'creditos' => 8, 'semestre' => 7,
+                'nivel' => 'terminal', 'area' => 'ciencias_sociales_humanidades', 'tipo' => 'formativa'],
+            ['clave' => 'TEFI701', 'nombre' => 'Taller Emprendedor o Taller de Formación Temprana de Investigadores',
+                'total_horas' => 32, 'creditos' => 2, 'semestre' => 7,
+                'nivel' => 'terminal', 'area' => 'ciencias_sociales_humanidades'],
+            ['clave' => 'PMN701', 'nombre' => 'Programación de Métodos Numéricos',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 7,
+                'nivel' => 'terminal', 'area' => 'matematicas_ciencias_basicas'],
+            ['clave' => 'SCS701', 'nombre' => 'Sistemas Cliente Servidor I',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 7,
+                'nivel' => 'terminal', 'area' => 'redes'],
+            ['clave' => 'CE701', 'nombre' => 'Compiladores y Ensambladores',
+                'total_horas' => 80, 'creditos' => 5, 'semestre' => 7,
+                'nivel' => 'terminal', 'area' => 'software_base'],
+            ['clave' => 'DI701', 'nombre' => 'Diseño de Interfaces',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 7,
+                'nivel' => 'terminal', 'area' => 'tratamiento_informacion'],
+            ['clave' => 'ABD701', 'nombre' => 'Aplicaciones con Bases de Datos',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 7,
+                'nivel' => 'terminal', 'area' => 'tratamiento_informacion'],
+            ['clave' => 'OPT701', 'nombre' => 'Optativo II',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 7,
+                'nivel' => 'terminal', 'area' => 'optativos', 'tipo' => 'optativa'],
+            ['clave' => 'PP701', 'nombre' => 'Prácticas Profesionales',
+                'total_horas' => 320, 'creditos' => 6, 'semestre' => 7,
+                'nivel' => 'terminal', 'area' => 'otras_ciencias', 'tipo' => 'especial'],
+
+            // ═══ SEMESTRE 8 — TERMINAL ═══
+            ['clave' => 'SCS801', 'nombre' => 'Sistemas Cliente Servidor II',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 8,
+                'nivel' => 'terminal', 'area' => 'redes'],
+            ['clave' => 'LIU801', 'nombre' => 'Laboratorio de Interfaces de Usuario',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 8,
+                'nivel' => 'terminal', 'area' => 'tratamiento_informacion'],
+            ['clave' => 'OPT801', 'nombre' => 'Optativo III',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 8,
+                'nivel' => 'terminal', 'area' => 'optativos', 'tipo' => 'optativa'],
+
+            // ═══ SEMESTRE 9 — TERMINAL ═══
+            ['clave' => 'IMPL901', 'nombre' => 'Implantación y Capacitación',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 9,
+                'nivel' => 'terminal', 'area' => 'entorno_social'],
+            ['clave' => 'PA901', 'nombre' => 'Programación Avanzada',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 9,
+                'nivel' => 'terminal', 'area' => 'tratamiento_informacion'],
+            ['clave' => 'OPT901', 'nombre' => 'Optativo IV',
+                'total_horas' => 96, 'creditos' => 6, 'semestre' => 9,
+                'nivel' => 'terminal', 'area' => 'optativos', 'tipo' => 'optativa'],
+            ['clave' => 'SS901', 'nombre' => 'Servicio Social',
+                'total_horas' => 480, 'creditos' => 10, 'semestre' => 9,
+                'nivel' => 'terminal', 'area' => 'otras_ciencias', 'tipo' => 'especial'],
+        ];
+
+        foreach ($materias as $materia) {
+            MateriaMalla::create(array_merge(
+                ['carrera_id' => $carreraId, 'tipo' => 'obligatoria', 'activa' => true],
+                $materia
+            ));
+        }
+
+        $this->command->info('✓ 54 materias de ISC 2010 creadas');
+    }
+}
