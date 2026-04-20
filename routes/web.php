@@ -30,7 +30,7 @@ Route::middleware(['auth', 'rol:alumno'])
     ->group(function () {
         Route::view('/dashboard', 'alumno.dashboard')->name('dashboard');
         Route::get('/malla', \App\Livewire\Alumno\MallaCurricular::class)->name('malla');
-        Route::view('/materias', 'alumno.materias')->name('materias');
+        Route::get('/materias', \App\Livewire\Alumno\Materias::class)->name('materias');
         Route::view('/calificaciones', 'alumno.calificaciones')->name('calificaciones');
         Route::view('/historial', 'alumno.historial')->name('historial');
         Route::view('/mensajes', 'alumno.mensajes')->name('mensajes');
