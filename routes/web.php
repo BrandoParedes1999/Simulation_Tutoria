@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use App\Livewire\Alumno\MallaCurricular;
 
 // ── Ruta raíz: redirige según autenticación ──
 Route::get('/', function () {
@@ -28,7 +29,7 @@ Route::middleware(['auth', 'rol:alumno'])
     ->name('alumno.')
     ->group(function () {
         Route::view('/dashboard', 'alumno.dashboard')->name('dashboard');
-        Route::view('/malla', 'alumno.malla')->name('malla');
+        Route::get('/malla', \App\Livewire\Alumno\MallaCurricular::class)->name('malla');
         Route::view('/materias', 'alumno.materias')->name('materias');
         Route::view('/calificaciones', 'alumno.calificaciones')->name('calificaciones');
         Route::view('/historial', 'alumno.historial')->name('historial');
