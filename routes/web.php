@@ -31,7 +31,7 @@ Route::middleware(['auth', 'rol:alumno'])
         Route::view('/dashboard', 'alumno.dashboard')->name('dashboard');
         Route::get('/malla', \App\Livewire\Alumno\MallaCurricular::class)->name('malla');
         Route::get('/materias', \App\Livewire\Alumno\Materias::class)->name('materias');
-        Route::view('/calificaciones', 'alumno.calificaciones')->name('calificaciones');
+        Route::get('/calificaciones', \App\Livewire\Alumno\Calificaciones::class)->name('calificaciones');
         Route::view('/historial', 'alumno.historial')->name('historial');
         Route::view('/mensajes', 'alumno.mensajes')->name('mensajes');
     });

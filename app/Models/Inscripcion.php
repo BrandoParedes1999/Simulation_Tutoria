@@ -25,30 +25,29 @@ class Inscripcion extends Model {
     ];
 
     protected static function booted() {
-        static::saving(function($inscripcion) {
-            // Calcular promedio con calificaciones disponibles
-            $calificaciones = array_filter([
-                $inscripcion->parcial1,
-                $inscripcion->parcial2,
-                $inscripcion->parcial3,
-                $inscripcion->calificacion_final,
-            ], fn($c) => $c !== null && $c >= 0);
+    static::saving(function($inscripcion) {
+        // Solo los 3 parciales cuentan para el promedio
+        $parciales = array_filter([
+            $inscripcion->parcial1,
+            $inscripcion->parcial2,
+            $inscripcion->parcial3,
+        ], fn($c) => $c !== null && $c >= 0);
 
-            if (count($calificaciones) > 0) {
-                $inscripcion->promedio = round(
-                    array_sum($calificaciones) / count($calificaciones), 2
-                );
+        if (count($parciales) > 0) {
+            $inscripcion->promedio = round(
+                array_sum($parciales) / count($parciales), 2
+            );
 
-                // Auto-asignar estatus cuando hay calificación final
-                if ($inscripcion->calificacion_final !== null
-                    && $inscripcion->estatus === 'en_curso') {
-                    $inscripcion->estatus = $inscripcion->promedio >= self::CALIFICACION_APROBATORIA
-                        ? 'aprobada'
-                        : 'reprobada';
-                }
+            // Auto-asignar estatus solo cuando estén los 3 parciales
+            if (count($parciales) === 3 && $inscripcion->estatus === 'en_curso') {
+                $inscripcion->estatus = $inscripcion->promedio >= self::CALIFICACION_APROBATORIA
+                    ? 'aprobada'
+                    : 'reprobada';
+                $inscripcion->calificacion_final = $inscripcion->promedio;
             }
-        });
-    }
+        }
+    });
+}
 
     public function alumno() { return $this->belongsTo(Alumno::class); }
     public function materiaMalla() { return $this->belongsTo(MateriaMalla::class, 'materia_malla_id'); }

@@ -227,7 +227,7 @@ class InscripcionService
         }
 
         // Prerrequisitos
-        $prerreqs = $materia->prerrequisitos()->get(['id', 'clave', 'nombre']);
+        $prerreqs = $materia->prerrequisitos()->get(['materias_malla.id', 'clave', 'nombre']);
         $faltantes = [];
 
         foreach ($prerreqs as $prereq) {

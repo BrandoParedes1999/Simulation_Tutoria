@@ -28,7 +28,7 @@ class MallaCurricularService
             600,
             fn() => MateriaMalla::where('carrera_id', $alumno->carrera_id)
                 ->where('activa', true)
-                ->with('prerrequisitos:id,clave,nombre')
+                ->with('prerrequisitos:materias_malla.id,clave,nombre')
                 ->orderBy('semestre')
                 ->orderBy('clave')
                 ->get()
