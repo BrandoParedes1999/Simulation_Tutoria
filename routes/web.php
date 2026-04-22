@@ -2,7 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
-use App\Livewire\Alumno\MallaCurricular;
+use App\Http\Controllers\Tutor\MensajeController as TutorMensajeController;
+use App\Http\Controllers\Tutor\AlertaController as TutorAlertaController;
+use App\Http\Controllers\Alumno\MensajeController as AlumnoMensajeController;
 
 // ── Ruta raíz: redirige según autenticación ──
 Route::get('/', function () {
@@ -15,11 +17,11 @@ Route::get('/', function () {
 // ── Dashboard inteligente: redirige según el rol ──
 Route::get('/dashboard', function () {
     $user = auth()->user();
-    
+
     if ($user->esAlumno()) return redirect()->route('alumno.dashboard');
-    if ($user->esTutor()) return redirect()->route('tutor.dashboard');
-    if ($user->esAdmin()) return redirect()->route('admin.dashboard');
-    
+    if ($user->esTutor())  return redirect()->route('tutor.dashboard');
+    if ($user->esAdmin())  return redirect()->route('admin.dashboard');
+
     abort(403, 'Rol no reconocido');
 })->middleware('auth')->name('dashboard');
 
@@ -28,12 +30,17 @@ Route::middleware(['auth', 'rol:alumno'])
     ->prefix('alumno')
     ->name('alumno.')
     ->group(function () {
-        Route::get('/dashboard', \App\Livewire\Alumno\Dashboard::class)->name('dashboard');
-        Route::get('/malla', \App\Livewire\Alumno\MallaCurricular::class)->name('malla');
-        Route::get('/materias', \App\Livewire\Alumno\Materias::class)->name('materias');
-        Route::get('/calificaciones', \App\Livewire\Alumno\Calificaciones::class)->name('calificaciones');
-        Route::view('/historial', 'alumno.historial')->name('historial');
-        Route::view('/mensajes', 'alumno.mensajes')->name('mensajes');
+        Route::get('/dashboard',       \App\Livewire\Alumno\Dashboard::class)->name('dashboard');
+        Route::get('/malla',           \App\Livewire\Alumno\MallaCurricular::class)->name('malla');
+        Route::get('/materias',        \App\Livewire\Alumno\Materias::class)->name('materias');
+        Route::get('/calificaciones',  \App\Livewire\Alumno\Calificaciones::class)->name('calificaciones');
+        // FIXED: antes usaban Route::view() con vistas inexistentes → ahora Livewire
+        Route::get('/historial',       \App\Livewire\Alumno\Historial::class)->name('historial');
+        Route::get('/mensajes',        \App\Livewire\Alumno\Mensajes::class)->name('mensajes');
+
+        // Rutas JSON para el componente Livewire de mensajes
+        Route::post('/mensajes/{mensaje}/responder', [AlumnoMensajeController::class, 'responder'])->name('mensajes.responder');
+        Route::post('/mensajes/{mensaje}/leer',      [AlumnoMensajeController::class, 'leer'])->name('mensajes.leer');
     });
 
 // ═══ TUTOR ═══
@@ -42,11 +49,22 @@ Route::middleware(['auth', 'rol:tutor'])
     ->name('tutor.')
     ->group(function () {
         Route::view('/dashboard', 'tutor.dashboard')->name('dashboard');
-        Route::view('/alumnos', 'tutor.alumnos')->name('alumnos');
-        Route::get('/alumnos/{id}', fn($id) => view('tutor.alumno-detalle', ['id' => $id]))->name('alumno-detalle');
-        Route::view('/alertas', 'tutor.alertas')->name('alertas');
+        Route::view('/alumnos',   'tutor.alumnos')->name('alumnos');
+
+        // FIXED: antes era 'tutor.alumno-detalle' (vista inexistente) → ahora 'tutor.detalle_alumno'
+        Route::get('/alumnos/{id}', fn ($id) => view('tutor.detalle_alumno', ['id' => $id]))->name('alumno-detalle');
+
+        Route::view('/alertas',  'tutor.alertas')->name('alertas');
         Route::view('/mensajes', 'tutor.mensajes')->name('mensajes');
         Route::view('/reportes', 'tutor.reportes')->name('reportes');
+
+        // NUEVO: rutas de mensajería (antes inexistentes → fetch 404)
+        Route::post('/mensajes/enviar',              [TutorMensajeController::class, 'enviar'])->name('mensajes.enviar');
+        Route::post('/mensajes/{mensaje}/responder', [TutorMensajeController::class, 'responder'])->name('mensajes.responder');
+        Route::post('/mensajes/{mensaje}/leer',      [TutorMensajeController::class, 'leer'])->name('mensajes.leer');
+
+        // NUEVO: marcar alerta como atendida (antes solo actualizaba el JS local)
+        Route::post('/alertas/{alerta}/atender', [TutorAlertaController::class, 'atender'])->name('alertas.atender');
     });
 
 // ═══ ADMIN ═══
@@ -55,13 +73,13 @@ Route::middleware(['auth', 'rol:admin'])
     ->name('admin.')
     ->group(function () {
         Route::view('/dashboard', 'admin.dashboard')->name('dashboard');
-        Route::view('/usuarios', 'admin.usuarios')->name('usuarios');
+        Route::view('/usuarios',  'admin.usuarios')->name('usuarios');
     });
 
 // ── Perfil (común) ──
 Route::middleware('auth')->group(function () {
-    Route::get('/perfil', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/perfil', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/perfil',    [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/perfil',  [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/perfil', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 

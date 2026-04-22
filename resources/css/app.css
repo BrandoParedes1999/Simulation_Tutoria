@@ -2,12 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Barra de progreso de wire:navigate */
+/* Livewire navigate progress bar */
 @layer components {
     [x-cloak] { display: none !important; }
 }
 
-/* Livewire navigate progress bar */
 #nprogress .bar {
     background: #1d4ed8 !important;
     height: 3px !important;
@@ -21,7 +20,6 @@
 body {
     transition: opacity 0.15s ease-in-out;
 }
-<<<<<<< Updated upstream
 
 /* Ocultar scrollbar en el selector de semestres */
 .scrollbar-hide {
@@ -31,5 +29,3 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
     display: none;
 }
-=======
->>>>>>> Stashed changes
