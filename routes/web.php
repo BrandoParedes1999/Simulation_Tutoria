@@ -28,7 +28,7 @@ Route::middleware(['auth', 'rol:alumno'])
     ->prefix('alumno')
     ->name('alumno.')
     ->group(function () {
-        Route::view('/dashboard', 'alumno.dashboard')->name('dashboard');
+        Route::get('/dashboard', \App\Livewire\Alumno\Dashboard::class)->name('dashboard');
         Route::get('/malla', \App\Livewire\Alumno\MallaCurricular::class)->name('malla');
         Route::get('/materias', \App\Livewire\Alumno\Materias::class)->name('materias');
         Route::get('/calificaciones', \App\Livewire\Alumno\Calificaciones::class)->name('calificaciones');
