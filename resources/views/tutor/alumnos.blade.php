@@ -19,64 +19,56 @@
             <p class="text-sm text-blue-400 mt-0.5">Lista de alumnos asignados</p>
         </div>
 
-        {{-- Filtros --}}
-       <div x-data="{
-    busqueda: '',
-    semestre: '',
-    alerta: '',
-    alumnos: {{ $alumnos->map(fn($a) => [
-        'id'        => $a->id,
-        'nombre'    => $a->usuario->name,
-        'carrera'   => $a->carrera->nombre ?? $a->carrera->clave ?? '',
-        'matricula' => $a->matricula,
-        'semestre'  => $a->semestre_actual,
-        'promedio'  => (float)$a->promedio_general,
-        'alertas'   => $alertasPorAlumno[$a->id] ?? 0,
-        'estatus'   => $a->estatus,
-    ])->values()->toJson() }},
+        <div x-data="{
+            busqueda: '',
+            semestre: '',
+            alerta: '',
+            alumnos: {{ $alumnos->map(fn($a) => [
+                'id'        => $a->id,
+                'nombre'    => $a->usuario->name,
+                'carrera'   => $a->carrera->nombre ?? $a->carrera->clave ?? '',
+                'matricula' => $a->matricula,
+                'semestre'  => $a->semestre_actual,
+                'promedio'  => (float)$a->promedio_general,
+                'alertas'   => $alertasPorAlumno[$a->id] ?? 0,
+                'estatus'   => $a->estatus,
+            ])->values()->toJson() }},
 
-    get filtrados() {
-        return this.alumnos.filter(a => {
-            const q = this.busqueda.toLowerCase();
-            const matchBusqueda = !q ||
-                a.nombre.toLowerCase().includes(q) ||
-                a.matricula.toLowerCase().includes(q);
-            const matchSemestre = !this.semestre || a.semestre == this.semestre;
-            const matchAlerta   = !this.alerta ||
-                (this.alerta === 'con' && a.alertas > 0) ||
-                (this.alerta === 'sin' && a.alertas === 0);
-            return matchBusqueda && matchSemestre && matchAlerta;
-        });
-    },
+            get filtrados() {
+                return this.alumnos.filter(a => {
+                    const q = this.busqueda.toLowerCase();
+                    const matchBusqueda = !q ||
+                        a.nombre.toLowerCase().includes(q) ||
+                        a.matricula.toLowerCase().includes(q);
+                    const matchSemestre = !this.semestre || a.semestre == this.semestre;
+                    const matchAlerta   = !this.alerta ||
+                        (this.alerta === 'con' && a.alertas > 0) ||
+                        (this.alerta === 'sin' && a.alertas === 0);
+                    return matchBusqueda && matchSemestre && matchAlerta;
+                });
+            },
 
-    // ESTA ES LA FUNCIÓN DENTRO DEL COMPONENTE
-    exportarCSV() {
-        if (this.filtrados.length === 0) {
-            alert('No hay datos para exportar');
-            return;
-        }
-
-        // Encabezados con BOM para que Excel reconozca tildes (UTF-8)
-        let csvContent = '\uFEFF'; 
-        csvContent += 'Nombre,Matrícula,Semestre,Promedio,Alertas\n';
-
-        this.filtrados.forEach(a => {
-            // Limpiamos comas en el nombre para no romper las columnas
-            let nombreLimpio = a.nombre.replace(/,/g, '');
-            csvContent += `${nombreLimpio},${a.matricula},${a.semestre},${a.promedio},${a.alertas}\n`;
-        });
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        
-        link.href = url;
-        link.setAttribute('download', 'lista_alumnos.csv');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-}">
+            exportarCSV() {
+                if (this.filtrados.length === 0) {
+                    alert('No hay datos para exportar');
+                    return;
+                }
+                let csvContent = '\uFEFF';
+                csvContent += 'Nombre,Matrícula,Semestre,Promedio,Alertas\n';
+                this.filtrados.forEach(a => {
+                    let nombreLimpio = a.nombre.replace(/,/g, '');
+                    csvContent += nombreLimpio + ',' + a.matricula + ',' + a.semestre + ',' + a.promedio + ',' + a.alertas + '\n';
+                });
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url  = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'lista_alumnos.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }">
 
             {{-- Controles --}}
             <div class="flex flex-col sm:flex-row gap-3">
@@ -116,31 +108,18 @@
                 <table class="w-full">
                     <thead>
                         <tr class="bg-blue-50/60 border-b border-blue-100">
-                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">
-                                Alumno
-                            </th>
-                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">
-                                Matrícula
-                            </th>
-                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">
-                                Semestre
-                            </th>
-                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">
-                                Promedio
-                            </th>
-                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">
-                                Alertas
-                            </th>
-                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">
-                                Acción
-                            </th>
+                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">Alumno</th>
+                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">Matrícula</th>
+                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">Semestre</th>
+                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">Promedio</th>
+                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">Alertas</th>
+                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">Acción</th>
                         </tr>
                     </thead>
                     <tbody>
                         <template x-for="a in filtrados" :key="a.id">
                             <tr class="border-b border-blue-50 hover:bg-blue-50/40 transition-colors">
 
-                                {{-- Alumno --}}
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-3">
                                         <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center
@@ -149,39 +128,36 @@
                                                   x-text="a.nombre.charAt(0).toUpperCase()"></span>
                                         </div>
                                         <div>
-                                            <p class="text-sm font-semibold text-blue-900"
-                                               x-text="a.nombre"></p>
-                                            <p class="text-xs text-blue-400"
-                                               x-text="a.carrera"></p>
+                                            <p class="text-sm font-semibold text-blue-900" x-text="a.nombre"></p>
+                                            <p class="text-xs text-blue-400" x-text="a.carrera"></p>
                                         </div>
                                     </div>
                                 </td>
 
-                                {{-- Matrícula --}}
                                 <td class="px-4 py-3">
-                                    <span class="text-sm text-blue-600 font-medium"
-                                          x-text="a.matricula"></span>
+                                    <span class="text-sm text-blue-600 font-medium" x-text="a.matricula"></span>
                                 </td>
 
-                                {{-- Semestre --}}
                                 <td class="px-4 py-3">
-                                    <span class="text-sm text-slate-600"
-                                          x-text="a.semestre"></span>
+                                    <span class="text-sm text-slate-600" x-text="a.semestre + '°'"></span>
                                 </td>
 
-                                {{-- Promedio con color --}}
+                                {{--
+                                    FIX #9: Colores en escala 0-100.
+                                    Antes: >= 9 (todos con promedio > 9 aparecían verdes, ej. 75 >= 9 = TRUE).
+                                    Ahora: >= 90 = verde, >= 80 = azul, >= 70 = ámbar, < 70 = rojo.
+                                --}}
                                 <td class="px-4 py-3">
                                     <span class="text-sm font-bold"
                                           :class="{
-                                              'text-green-600': a.promedio >= 9,
-                                              'text-blue-600':  a.promedio >= 8 && a.promedio < 9,
-                                              'text-amber-500': a.promedio >= 7 && a.promedio < 8,
-                                              'text-red-500':   a.promedio < 7
+                                              'text-emerald-600': a.promedio >= 90,
+                                              'text-blue-600':    a.promedio >= 80 && a.promedio < 90,
+                                              'text-amber-500':   a.promedio >= 70 && a.promedio < 80,
+                                              'text-red-500':     a.promedio < 70
                                           }"
-                                          x-text="a.promedio.toFixed(1)"></span>
+                                          x-text="a.promedio > 0 ? a.promedio.toFixed(1) + ' pts' : '—'"></span>
                                 </td>
 
-                                {{-- Alertas --}}
                                 <td class="px-4 py-3">
                                     <template x-if="a.alertas > 0">
                                         <span class="inline-flex items-center justify-center
@@ -194,20 +170,18 @@
                                     </template>
                                 </td>
 
-                                {{-- Acción --}}
                                 <td class="px-4 py-3">
-                               <a :href="`/tutor/alumnos/${a.id}`"
-   class="px-3 py-1.5 border border-blue-200 rounded-lg
-          text-blue-600 text-xs font-medium
-          hover:bg-blue-50 transition">
-    Ver
-</a>
+                                    <a :href="`/tutor/alumnos/${a.id}`"
+                                       class="px-3 py-1.5 border border-blue-200 rounded-lg
+                                              text-blue-600 text-xs font-medium
+                                              hover:bg-blue-50 transition">
+                                        Ver
+                                    </a>
                                 </td>
 
                             </tr>
                         </template>
 
-                        {{-- Sin resultados --}}
                         <tr x-show="filtrados.length === 0">
                             <td colspan="6" class="text-center py-8 text-sm text-slate-400">
                                 No se encontraron alumnos
@@ -216,7 +190,6 @@
                     </tbody>
                 </table>
 
-                {{-- Footer --}}
                 <div class="px-4 py-3 border-t border-blue-50 flex items-center justify-between">
                     <span class="text-xs text-slate-400">
                         Mostrando <span x-text="filtrados.length"></span>
