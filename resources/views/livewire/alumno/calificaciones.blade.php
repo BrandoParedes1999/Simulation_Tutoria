@@ -27,9 +27,7 @@
     class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5"
 >
 
-    {{-- ══════════════════════════════════════════════ --}}
-    {{-- HEADER                                          --}}
-    {{-- ══════════════════════════════════════════════ --}}
+    {{-- HEADER --}}
     <div>
         <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -48,9 +46,9 @@
                 <p class="text-xs text-blue-200 uppercase tracking-wide mb-1">Promedio del periodo</p>
                 <div class="flex items-baseline gap-2">
                     <p class="text-4xl font-bold">
-                        {{ $this->resumen['promedio_periodo'] > 0 ? number_format($this->resumen['promedio_periodo'], 1) : '—' }}
+                        {{ $resumen['promedio_periodo'] > 0 ? number_format($resumen['promedio_periodo'], 1) : '—' }}
                     </p>
-                    @if($this->resumen['promedio_periodo'] > 0)
+                    @if($resumen['promedio_periodo'] > 0)
                         <span class="text-sm text-blue-200">/ 100</span>
                     @endif
                 </div>
@@ -58,16 +56,16 @@
                 <div class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/20">
                     <div>
                         <p class="text-xs text-blue-200">Calificadas</p>
-                        <p class="text-lg font-bold">{{ $this->resumen['calificadas'] }}/{{ $this->resumen['total_materias'] }}</p>
+                        <p class="text-lg font-bold">{{ $resumen['calificadas'] }}/{{ $resumen['total_materias'] }}</p>
                     </div>
                     <div class="border-l border-white/20 pl-2">
                         <p class="text-xs text-blue-200">Aprobadas</p>
-                        <p class="text-lg font-bold text-emerald-200">{{ $this->resumen['aprobadas'] }}</p>
+                        <p class="text-lg font-bold text-emerald-200">{{ $resumen['aprobadas'] }}</p>
                     </div>
                     <div class="border-l border-white/20 pl-2">
                         <p class="text-xs text-blue-200">Reprobadas</p>
-                        <p class="text-lg font-bold {{ $this->resumen['reprobadas'] > 0 ? 'text-red-200' : 'text-white/50' }}">
-                            {{ $this->resumen['reprobadas'] }}
+                        <p class="text-lg font-bold {{ $resumen['reprobadas'] > 0 ? 'text-red-200' : 'text-white/50' }}">
+                            {{ $resumen['reprobadas'] }}
                         </p>
                     </div>
                 </div>
@@ -75,12 +73,10 @@
         </div>
     </div>
 
-    {{-- ══════════════════════════════════════════════ --}}
-    {{-- LISTADO DE MATERIAS                             --}}
-    {{-- ══════════════════════════════════════════════ --}}
-    @if($this->materias->count() > 0)
+    {{-- LISTADO DE MATERIAS --}}
+    @if($materias->count() > 0)
         <div class="space-y-3">
-            @foreach($this->materias as $materia)
+            @foreach($materias as $materia)
                 @php
                     $estilo = match($materia['estatus']) {
                         'aprobada' => [
@@ -113,7 +109,7 @@
                 @endphp
 
                 <div class="bg-white border rounded-2xl {{ $estilo['border'] }} overflow-hidden transition-all">
-                    {{-- Cabecera (siempre visible) --}}
+                    {{-- Cabecera --}}
                     <button
                         @click="expandir({{ $materia['id'] }})"
                         class="w-full p-3 text-left hover:bg-blue-50/30 transition-colors">
@@ -139,7 +135,6 @@
                                     </span>
                                 </div>
 
-                                {{-- Resumen de parciales (solo visible cuando NO está expandida) --}}
                                 <div x-show="$wire.abierta !== {{ $materia['id'] }}" class="flex items-center gap-4 mt-2 text-xs">
                                     <div class="flex items-center gap-1.5">
                                         <span class="text-blue-400">P1:</span>
@@ -168,7 +163,6 @@
                                 </div>
                             </div>
 
-                            {{-- Flecha --}}
                             <div class="flex-shrink-0 self-center">
                                 <div x-show="$wire.abierta !== {{ $materia['id'] }}">
                                     @svg('lucide-chevron-down', 'w-4 h-4 text-blue-400')
@@ -192,7 +186,6 @@
                         }">
                         <div class="border-t border-blue-100 p-4 bg-blue-50/30 space-y-4">
 
-                            {{-- Inputs de parciales --}}
                             <div class="grid grid-cols-3 gap-3">
                                 @foreach([1, 2, 3] as $num)
                                     <div>
@@ -214,7 +207,6 @@
                                 @endforeach
                             </div>
 
-                            {{-- Validación visual --}}
                             <template x-if="!validoNum(p1) || !validoNum(p2) || !validoNum(p3)">
                                 <div class="bg-red-50 border border-red-200 rounded-xl p-2.5 flex items-start gap-2">
                                     @svg('lucide-alert-circle', 'w-4 h-4 text-red-600 flex-shrink-0 mt-0.5')
@@ -222,7 +214,6 @@
                                 </div>
                             </template>
 
-                            {{-- Preview del promedio (calculado en vivo con Alpine) --}}
                             <div class="bg-white rounded-xl p-3 border border-blue-100">
                                 <div class="flex items-center justify-between">
                                     <div>
@@ -268,7 +259,6 @@
                                 </template>
                             </div>
 
-                            {{-- Acciones --}}
                             <div class="flex gap-2">
                                 <button
                                     @click="$wire.cerrar()"

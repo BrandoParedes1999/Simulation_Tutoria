@@ -6,146 +6,21 @@ use App\Exceptions\InscripcionException;
 use App\Models\Inscripcion;
 use App\Models\Periodo;
 use App\Services\InscripcionService;
-use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
 class Materias extends Component
 {
-    /**
-     * Tabs: 'disponibles' | 'carrito' | 'inscritas'
-     */
     public string $tab = 'disponibles';
-
-    /**
-     * IDs de materias en el carrito (antes de confirmar inscripción)
-     */
     public array $carrito = [];
-
-    /**
-     * Filtro de búsqueda por texto
-     */
     public string $busqueda = '';
-
-    /**
-     * Filtro por semestre (null = todos)
-     */
     public ?int $filtroSemestre = null;
 
     public function mount(): void
     {
-        // Arranca en tab carrito si ya eligieron algo, si no, en disponibles
         $this->tab = 'disponibles';
     }
-
-    // ─── Datos calculados (cache dentro del componente) ───
-
-    #[Computed]
-    public function alumno()
-    {
-        return auth()->user()->alumno;
-    }
-
-    #[Computed]
-    public function periodo(): ?Periodo
-    {
-        return Periodo::where('es_actual', true)->first();
-    }
-
-    #[Computed]
-    public function periodoAbierto(): bool
-    {
-        return $this->periodo?->estaAbiertoParaInscripcion() ?? false;
-    }
-
-    #[Computed]
-    public function diasRestantesInscripcion(): int
-    {
-        if (!$this->periodo) return 0;
-        return max(0, now()->diffInDays($this->periodo->fecha_limite_inscripcion, false));
-    }
-
-    #[Computed]
-    public function disponibles()
-    {
-        $servicio = app(InscripcionService::class);
-        $materias = $servicio->obtenerMateriasDisponibles($this->alumno);
-
-        // Aplicar filtros
-        if ($this->busqueda) {
-            $q = mb_strtolower($this->busqueda);
-            $materias = $materias->filter(fn($m) =>
-                str_contains(mb_strtolower($m['nombre']), $q) ||
-                str_contains(mb_strtolower($m['clave']), $q)
-            );
-        }
-
-        if ($this->filtroSemestre) {
-            $materias = $materias->where('semestre', $this->filtroSemestre);
-        }
-
-        return $materias->values();
-    }
-
-    #[Computed]
-    public function inscritas()
-    {
-        return app(InscripcionService::class)
-            ->obtenerMateriasInscritas($this->alumno, $this->periodo);
-    }
-
-    /**
-     * Materias sugeridas: las del semestre actual del alumno que están disponibles.
-     */
-    #[Computed]
-    public function sugeridas()
-    {
-        $servicio = app(InscripcionService::class);
-        return $servicio->obtenerMateriasDisponibles($this->alumno)
-            ->where('semestre', $this->alumno->semestre_actual)
-            ->values();
-    }
-
-    #[Computed]
-    public function materiasEnCarrito()
-    {
-        if (empty($this->carrito)) return collect();
-
-        $servicio = app(InscripcionService::class);
-        return $servicio->obtenerMateriasDisponibles($this->alumno)
-            ->whereIn('id', $this->carrito)
-            ->values();
-    }
-
-    #[Computed]
-    public function creditosCarrito(): int
-    {
-        return $this->materiasEnCarrito->sum('creditos');
-    }
-
-    #[Computed]
-    public function erroresCarrito(): array
-    {
-        if (empty($this->carrito)) return [];
-
-        return app(InscripcionService::class)
-            ->validarCarrito($this->alumno, $this->carrito);
-    }
-
-    #[Computed]
-    public function semestresDisponibles(): array
-    {
-        $servicio = app(InscripcionService::class);
-        return $servicio->obtenerMateriasDisponibles($this->alumno)
-            ->pluck('semestre')
-            ->unique()
-            ->sort()
-            ->values()
-            ->toArray();
-    }
-
-    // ─── Acciones ──────────────────────────────────────
 
     public function cambiarTab(string $tab): void
     {
@@ -173,21 +48,25 @@ class Materias extends Component
         $this->dispatch('toast', tipo: 'info', mensaje: 'Carrito vaciado');
     }
 
-    /**
-     * Agrega todas las sugeridas al carrito de una vez.
-     */
     public function agregarSugeridas(): void
     {
-        $nuevas = $this->sugeridas->pluck('id')->toArray();
+        $alumno = auth()->user()->alumno;
+        $servicio = app(InscripcionService::class);
 
-        foreach ($nuevas as $id) {
+        $sugeridasIds = $servicio->obtenerMateriasDisponibles($alumno)
+            ->where('semestre', $alumno->semestre_actual)
+            ->pluck('id')
+            ->toArray();
+
+        $nuevas = 0;
+        foreach ($sugeridasIds as $id) {
             if (!in_array($id, $this->carrito, true)) {
                 $this->carrito[] = $id;
+                $nuevas++;
             }
         }
 
-        $count = count($nuevas);
-        $this->dispatch('toast', tipo: 'success', mensaje: "{$count} materias agregadas");
+        $this->dispatch('toast', tipo: 'success', mensaje: "{$nuevas} materias agregadas");
     }
 
     public function confirmarInscripcion(): void
@@ -198,14 +77,12 @@ class Materias extends Component
         }
 
         try {
+            $alumno = auth()->user()->alumno;
             $inscripciones = app(InscripcionService::class)
-                ->inscribir($this->alumno, $this->carrito);
+                ->inscribir($alumno, $this->carrito);
 
             $this->carrito = [];
             $this->tab = 'inscritas';
-
-            // Refresca computed
-            unset($this->disponibles, $this->inscritas, $this->sugeridas);
 
             $count = $inscripciones->count();
             $this->dispatch(
@@ -222,9 +99,8 @@ class Materias extends Component
     {
         try {
             $inscripcion = Inscripcion::findOrFail($inscripcionId);
-            app(InscripcionService::class)->darDeBaja($inscripcion, $this->alumno);
-
-            unset($this->disponibles, $this->inscritas);
+            $alumno = auth()->user()->alumno;
+            app(InscripcionService::class)->darDeBaja($inscripcion, $alumno);
 
             $this->dispatch('toast', tipo: 'success', mensaje: 'Materia dada de baja');
         } catch (InscripcionException $e) {
@@ -240,6 +116,71 @@ class Materias extends Component
 
     public function render()
     {
-        return view('livewire.alumno.materias');
+        $alumno = auth()->user()->alumno;
+        $servicio = app(InscripcionService::class);
+        $periodo = Periodo::where('es_actual', true)->first();
+
+        // UNA sola llamada al servicio para todas las disponibles
+        $todasDisponibles = $servicio->obtenerMateriasDisponibles($alumno);
+
+        // Derivamos todo de esa colección en memoria (sin más queries)
+        $sugeridas = $todasDisponibles
+            ->where('semestre', $alumno->semestre_actual)
+            ->values();
+
+        $semestresDisponibles = $todasDisponibles
+            ->pluck('semestre')
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        // Aplicar filtros
+        $disponibles = $todasDisponibles;
+        if ($this->busqueda) {
+            $q = mb_strtolower($this->busqueda);
+            $disponibles = $disponibles->filter(fn($m) =>
+                str_contains(mb_strtolower($m['nombre']), $q) ||
+                str_contains(mb_strtolower($m['clave']), $q)
+            );
+        }
+        if ($this->filtroSemestre) {
+            $disponibles = $disponibles->where('semestre', $this->filtroSemestre);
+        }
+        $disponibles = $disponibles->values();
+
+        // Materias en carrito (desde la misma colección ya cargada)
+        $materiasEnCarrito = empty($this->carrito)
+            ? collect()
+            : $todasDisponibles->whereIn('id', $this->carrito)->values();
+
+        $creditosCarrito = $materiasEnCarrito->sum('creditos');
+
+        // Errores del carrito
+        $erroresCarrito = empty($this->carrito)
+            ? []
+            : $servicio->validarCarrito($alumno, $this->carrito);
+
+        // Inscritas del periodo
+        $inscritas = $servicio->obtenerMateriasInscritas($alumno, $periodo);
+
+        $periodoAbierto = $periodo?->estaAbiertoParaInscripcion() ?? false;
+        $diasRestantesInscripcion = $periodo
+            ? max(0, (int) now()->startOfDay()->diffInDays($periodo->fecha_limite_inscripcion->startOfDay(), false))
+            : 0;
+
+        return view('livewire.alumno.materias', [
+            'alumno'                    => $alumno,
+            'periodo'                   => $periodo,
+            'periodoAbierto'            => $periodoAbierto,
+            'diasRestantesInscripcion'  => $diasRestantesInscripcion,
+            'disponibles'               => $disponibles,
+            'sugeridas'                 => $sugeridas,
+            'semestresDisponibles'      => $semestresDisponibles,
+            'materiasEnCarrito'         => $materiasEnCarrito,
+            'creditosCarrito'           => $creditosCarrito,
+            'erroresCarrito'            => $erroresCarrito,
+            'inscritas'                 => $inscritas,
+        ]);
     }
 }

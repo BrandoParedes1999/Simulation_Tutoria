@@ -4,14 +4,10 @@ namespace App\Observers;
 
 use App\Models\Inscripcion;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class InscripcionObserver
 {
-    /**
-     * Se ejecuta después de crear, actualizar o borrar una inscripción.
-     * Mantiene sincronizados: cache de malla, créditos aprobados y promedio general del alumno.
-     */
-
     public function created(Inscripcion $inscripcion): void
     {
         $this->limpiarCacheMalla($inscripcion);
@@ -21,7 +17,6 @@ class InscripcionObserver
     {
         $this->limpiarCacheMalla($inscripcion);
 
-        // Si cambió el estatus a aprobada/reprobada, actualizar totales del alumno
         if ($inscripcion->wasChanged('estatus')) {
             $this->actualizarTotalesAlumno($inscripcion);
         }
@@ -33,8 +28,6 @@ class InscripcionObserver
         $this->actualizarTotalesAlumno($inscripcion);
     }
 
-    // ─── Privados ──────────────────────────────────────────
-
     private function limpiarCacheMalla(Inscripcion $inscripcion): void
     {
         $alumno = $inscripcion->alumno;
@@ -43,14 +36,27 @@ class InscripcionObserver
         }
     }
 
+    /**
+     * Actualiza créditos aprobados y promedio general con UNA sola query agregada.
+     * Mucho más rápido que calcularCreditosAprobados() + calcularPromedioGeneral()
+     * que hacían queries separadas y cargaban colecciones completas.
+     */
     private function actualizarTotalesAlumno(Inscripcion $inscripcion): void
     {
         $alumno = $inscripcion->alumno;
         if (!$alumno) return;
 
-        $alumno->update([
-            'creditos_aprobados' => $alumno->calcularCreditosAprobados(),
-            'promedio_general' => $alumno->calcularPromedioGeneral(),
+        $stats = DB::table('inscripciones')
+            ->join('materias_malla', 'inscripciones.materia_malla_id', '=', 'materias_malla.id')
+            ->where('inscripciones.alumno_id', $alumno->id)
+            ->where('inscripciones.estatus', 'aprobada')
+            ->selectRaw('COALESCE(SUM(materias_malla.creditos), 0) as total_creditos')
+            ->selectRaw('COALESCE(AVG(CASE WHEN inscripciones.promedio IS NOT NULL THEN inscripciones.promedio END), 0) as promedio_general')
+            ->first();
+
+        $alumno->updateQuietly([
+            'creditos_aprobados' => (int) $stats->total_creditos,
+            'promedio_general'   => round((float) $stats->promedio_general, 2),
         ]);
     }
 }

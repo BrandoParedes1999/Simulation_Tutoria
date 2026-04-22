@@ -1,8 +1,6 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
 
-    {{-- ══════════════════════════════════════════════ --}}
-    {{-- HEADER: Periodo y estado                       --}}
-    {{-- ══════════════════════════════════════════════ --}}
+    {{-- HEADER: Periodo y estado --}}
     <div>
         <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -14,15 +12,14 @@
             </div>
         </div>
 
-        {{-- Card del periodo --}}
-        @if($this->periodo)
+        @if($periodo)
             <div class="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
                 <div class="flex items-start justify-between gap-3 mb-3">
                     <div>
                         <p class="text-xs text-blue-400 uppercase tracking-wide">Periodo actual</p>
-                        <p class="text-base font-bold text-blue-900">{{ $this->periodo->nombre }}</p>
+                        <p class="text-base font-bold text-blue-900">{{ $periodo->nombre }}</p>
                     </div>
-                    @if($this->periodoAbierto)
+                    @if($periodoAbierto)
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full flex-shrink-0">
                             <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                             Abierto
@@ -35,19 +32,19 @@
                     @endif
                 </div>
 
-                @if($this->periodoAbierto)
+                @if($periodoAbierto)
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
                         @svg('lucide-clock', 'w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5')
                         <div class="flex-1 min-w-0">
                             <p class="text-xs font-semibold text-amber-900">
-                                @if($this->diasRestantesInscripcion > 0)
-                                    {{ $this->diasRestantesInscripcion }} {{ $this->diasRestantesInscripcion === 1 ? 'día restante' : 'días restantes' }} para inscribir
+                                @if($diasRestantesInscripcion > 0)
+                                    {{ $diasRestantesInscripcion }} {{ $diasRestantesInscripcion === 1 ? 'día restante' : 'días restantes' }} para inscribir
                                 @else
                                     Último día para inscribir
                                 @endif
                             </p>
                             <p class="text-xs text-amber-700">
-                                Fecha límite: {{ $this->periodo->fecha_limite_inscripcion->isoFormat('D [de] MMMM YYYY') }}
+                                Fecha límite: {{ $periodo->fecha_limite_inscripcion->isoFormat('D [de] MMMM YYYY') }}
                             </p>
                         </div>
                     </div>
@@ -73,12 +70,9 @@
         @endif
     </div>
 
-    {{-- ══════════════════════════════════════════════ --}}
-    {{-- TABS                                            --}}
-    {{-- ══════════════════════════════════════════════ --}}
+    {{-- TABS --}}
     <div class="bg-white rounded-2xl border border-blue-100 shadow-sm overflow-hidden">
         <div class="flex border-b border-blue-100">
-            {{-- Tab Disponibles --}}
             <button
                 wire:click="cambiarTab('disponibles')"
                 class="flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors relative
@@ -88,14 +82,13 @@
                 <span class="sm:hidden">Dispo.</span>
                 <span class="inline-flex items-center justify-center px-1.5 min-w-[20px] h-5 text-[10px] font-bold rounded-full
                     {{ $tab === 'disponibles' ? 'bg-blue-700 text-white' : 'bg-blue-100 text-blue-600' }}">
-                    {{ $this->disponibles->count() }}
+                    {{ $disponibles->count() }}
                 </span>
                 @if($tab === 'disponibles')
                     <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-700"></span>
                 @endif
             </button>
 
-            {{-- Tab Carrito --}}
             <button
                 wire:click="cambiarTab('carrito')"
                 class="flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors relative
@@ -113,7 +106,6 @@
                 @endif
             </button>
 
-            {{-- Tab Inscritas --}}
             <button
                 wire:click="cambiarTab('inscritas')"
                 class="flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors relative
@@ -122,7 +114,7 @@
                 <span>Inscritas</span>
                 <span class="inline-flex items-center justify-center px-1.5 min-w-[20px] h-5 text-[10px] font-bold rounded-full
                     {{ $tab === 'inscritas' ? 'bg-emerald-500 text-white' : 'bg-emerald-100 text-emerald-700' }}">
-                    {{ $this->inscritas->count() }}
+                    {{ $inscritas->count() }}
                 </span>
                 @if($tab === 'inscritas')
                     <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-700"></span>
@@ -130,17 +122,14 @@
             </button>
         </div>
 
-        {{-- ══════════════════════════════════════════════ --}}
-        {{-- CONTENIDO DE TABS                               --}}
-        {{-- ══════════════════════════════════════════════ --}}
         <div class="p-4 sm:p-5">
 
             {{-- ─── TAB 1: DISPONIBLES ─── --}}
             @if($tab === 'disponibles')
                 <div class="space-y-4">
 
-                    {{-- Sugeridas (solo si hay) --}}
-                    @if($this->sugeridas->count() > 0)
+                    {{-- Sugeridas --}}
+                    @if($sugeridas->count() > 0)
                         <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4">
                             <div class="flex items-start justify-between gap-3 mb-3">
                                 <div class="flex items-center gap-2">
@@ -148,11 +137,11 @@
                                     <div>
                                         <p class="text-sm font-bold text-blue-900">Sugeridas para ti</p>
                                         <p class="text-[11px] text-blue-600">
-                                            Semestre {{ $this->alumno->semestre_actual }}° · {{ $this->sugeridas->count() }} {{ $this->sugeridas->count() === 1 ? 'materia' : 'materias' }}
+                                            Semestre {{ $alumno->semestre_actual }}° · {{ $sugeridas->count() }} {{ $sugeridas->count() === 1 ? 'materia' : 'materias' }}
                                         </p>
                                     </div>
                                 </div>
-                                @if($this->periodoAbierto)
+                                @if($periodoAbierto)
                                     <button
                                         wire:click="agregarSugeridas"
                                         class="text-xs font-semibold bg-blue-700 text-white px-3 py-1.5 rounded-lg hover:bg-blue-800 active:scale-95 transition-all flex items-center gap-1 flex-shrink-0">
@@ -162,7 +151,7 @@
                                 @endif
                             </div>
                             <div class="space-y-1.5">
-                                @foreach($this->sugeridas as $mat)
+                                @foreach($sugeridas as $mat)
                                     <div class="flex items-center gap-2 text-xs text-blue-800">
                                         @svg('lucide-check', 'w-3 h-3 text-blue-600 flex-shrink-0')
                                         <span class="font-mono text-blue-600">{{ $mat['clave'] }}</span>
@@ -197,8 +186,7 @@
                             @endif
                         </div>
 
-                        {{-- Chips de semestre --}}
-                        @if(count($this->semestresDisponibles) > 1)
+                        @if(count($semestresDisponibles) > 1)
                             <div class="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
                                 <button
                                     wire:click="$set('filtroSemestre', null)"
@@ -206,7 +194,7 @@
                                         {{ !$filtroSemestre ? 'bg-blue-700 text-white' : 'bg-blue-50 text-blue-600 hover:bg-blue-100' }}">
                                     Todos
                                 </button>
-                                @foreach($this->semestresDisponibles as $sem)
+                                @foreach($semestresDisponibles as $sem)
                                     <button
                                         wire:click="$set('filtroSemestre', {{ $sem }})"
                                         class="flex-shrink-0 px-3 py-1.5 text-xs font-medium rounded-full transition-colors
@@ -219,9 +207,9 @@
                     </div>
 
                     {{-- Listado de materias --}}
-                    @if($this->disponibles->count() > 0)
+                    @if($disponibles->count() > 0)
                         <div class="space-y-2">
-                            @foreach($this->disponibles as $materia)
+                            @foreach($disponibles as $materia)
                                 @php
                                     $enCarrito = in_array($materia['id'], $carrito);
                                     $esReprobada = $materia['estado'] === 'reprobada';
@@ -229,7 +217,6 @@
                                 <div class="bg-white border rounded-2xl p-3 transition-all
                                     {{ $enCarrito ? 'border-blue-400 bg-blue-50/30 shadow-sm' : 'border-blue-100 hover:border-blue-200 hover:shadow-sm' }}">
                                     <div class="flex items-start gap-3">
-                                        {{-- Icono de tipo --}}
                                         <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm
                                             {{ $esReprobada ? 'bg-red-500' : 'bg-amber-500' }}">
                                             @if($esReprobada)
@@ -239,7 +226,6 @@
                                             @endif
                                         </div>
 
-                                        {{-- Info --}}
                                         <div class="flex-1 min-w-0">
                                             <div class="flex items-start justify-between gap-2 mb-1">
                                                 <div class="min-w-0">
@@ -269,8 +255,7 @@
                                             </div>
                                         </div>
 
-                                        {{-- Botón --}}
-                                        @if($this->periodoAbierto)
+                                        @if($periodoAbierto)
                                             @if($enCarrito)
                                                 <button
                                                     wire:click="quitarDelCarrito({{ $materia['id'] }})"
@@ -310,9 +295,8 @@
             {{-- ─── TAB 2: CARRITO ─── --}}
             @if($tab === 'carrito')
                 <div class="space-y-4">
-                    @if($this->materiasEnCarrito->count() > 0)
+                    @if($materiasEnCarrito->count() > 0)
 
-                        {{-- Resumen --}}
                         <div class="bg-gradient-to-br from-blue-700 to-blue-900 rounded-2xl p-4 text-white shadow-md">
                             <div class="flex items-center justify-between mb-2">
                                 <p class="text-xs text-blue-200 uppercase tracking-wide">Total del carrito</p>
@@ -326,28 +310,27 @@
                             </div>
                             <div class="flex items-end justify-between">
                                 <div>
-                                    <p class="text-3xl font-bold">{{ $this->materiasEnCarrito->count() }}</p>
-                                    <p class="text-xs text-blue-200">{{ $this->materiasEnCarrito->count() === 1 ? 'materia' : 'materias' }}</p>
+                                    <p class="text-3xl font-bold">{{ $materiasEnCarrito->count() }}</p>
+                                    <p class="text-xs text-blue-200">{{ $materiasEnCarrito->count() === 1 ? 'materia' : 'materias' }}</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-3xl font-bold">{{ $this->creditosCarrito }}</p>
+                                    <p class="text-3xl font-bold">{{ $creditosCarrito }}</p>
                                     <p class="text-xs text-blue-200">créditos</p>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- Errores de validación --}}
-                        @if(!empty($this->erroresCarrito))
+                        @if(!empty($erroresCarrito))
                             <div class="bg-red-50 border border-red-200 rounded-2xl p-3 space-y-2">
                                 <div class="flex items-center gap-2">
                                     @svg('lucide-alert-triangle', 'w-4 h-4 text-red-600')
                                     <p class="text-sm font-bold text-red-900">Hay problemas con tu carrito</p>
                                 </div>
-                                @if(isset($this->erroresCarrito['general']))
-                                    <p class="text-xs text-red-700">{{ $this->erroresCarrito['general'] }}</p>
+                                @if(isset($erroresCarrito['general']))
+                                    <p class="text-xs text-red-700">{{ $erroresCarrito['general'] }}</p>
                                 @else
                                     <div class="space-y-1">
-                                        @foreach($this->erroresCarrito as $materiaId => $error)
+                                        @foreach($erroresCarrito as $materiaId => $error)
                                             <p class="text-xs text-red-700">• {{ $error }}</p>
                                         @endforeach
                                     </div>
@@ -355,10 +338,9 @@
                             </div>
                         @endif
 
-                        {{-- Listado --}}
                         <div class="space-y-2">
-                            @foreach($this->materiasEnCarrito as $materia)
-                                @php $tieneError = isset($this->erroresCarrito[$materia['id']]); @endphp
+                            @foreach($materiasEnCarrito as $materia)
+                                @php $tieneError = isset($erroresCarrito[$materia['id']]); @endphp
                                 <div class="bg-white border rounded-2xl p-3
                                     {{ $tieneError ? 'border-red-200 bg-red-50/30' : 'border-blue-100' }}">
                                     <div class="flex items-start gap-3">
@@ -388,12 +370,11 @@
                             @endforeach
                         </div>
 
-                        {{-- Botón confirmar --}}
-                        @if($this->periodoAbierto)
+                        @if($periodoAbierto)
                             <button
                                 wire:click="confirmarInscripcion"
-                                wire:confirm="¿Confirmar la inscripción de {{ $this->materiasEnCarrito->count() }} materia(s)?"
-                                @disabled(!empty($this->erroresCarrito))
+                                wire:confirm="¿Confirmar la inscripción de {{ $materiasEnCarrito->count() }} materia(s)?"
+                                @disabled(!empty($erroresCarrito))
                                 class="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-semibold shadow-md shadow-emerald-600/25 transition-all flex items-center justify-center gap-2">
                                 <span wire:loading.remove wire:target="confirmarInscripcion" class="flex items-center gap-2">
                                     @svg('lucide-check', 'w-5 h-5')
@@ -425,18 +406,18 @@
             {{-- ─── TAB 3: INSCRITAS ─── --}}
             @if($tab === 'inscritas')
                 <div class="space-y-3">
-                    @if($this->inscritas->count() > 0)
+                    @if($inscritas->count() > 0)
                         <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-start gap-2">
                             @svg('lucide-info', 'w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5')
                             <p class="text-xs text-emerald-700">
-                                Estás inscrito en <span class="font-bold">{{ $this->inscritas->count() }}</span>
-                                {{ $this->inscritas->count() === 1 ? 'materia' : 'materias' }} este periodo.
-                                Total: <span class="font-bold">{{ $this->inscritas->sum('materia.creditos') }} créditos</span>.
+                                Estás inscrito en <span class="font-bold">{{ $inscritas->count() }}</span>
+                                {{ $inscritas->count() === 1 ? 'materia' : 'materias' }} este periodo.
+                                Total: <span class="font-bold">{{ $inscritas->sum('materia.creditos') }} créditos</span>.
                             </p>
                         </div>
 
                         <div class="space-y-2">
-                            @foreach($this->inscritas as $item)
+                            @foreach($inscritas as $item)
                                 <div class="bg-white border border-emerald-100 rounded-2xl p-3">
                                     <div class="flex items-start gap-3">
                                         <div class="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">

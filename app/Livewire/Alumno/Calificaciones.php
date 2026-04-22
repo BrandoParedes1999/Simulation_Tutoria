@@ -5,48 +5,21 @@ namespace App\Livewire\Alumno;
 use App\Exceptions\CalificacionException;
 use App\Models\Inscripcion;
 use App\Services\CalificacionService;
-use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
 class Calificaciones extends Component
 {
-    /**
-     * Cache local de calificaciones editadas (no guardadas aún).
-     * Formato: [inscripcion_id => ['parcial1' => valor, 'parcial2' => valor, 'parcial3' => valor]]
-     */
     public array $edits = [];
-
-    /**
-     * ID de la inscripción actualmente abierta en edición
-     */
     public ?int $abierta = null;
-
-    #[Computed]
-    public function alumno()
-    {
-        return auth()->user()->alumno;
-    }
-
-    #[Computed]
-    public function materias()
-    {
-        return app(CalificacionService::class)
-            ->obtenerMateriasParaCapturar($this->alumno);
-    }
-
-    #[Computed]
-    public function resumen(): array
-    {
-        return app(CalificacionService::class)
-            ->obtenerResumenPeriodo($this->alumno);
-    }
 
     public function abrir(int $inscripcionId): void
     {
-        // Cargar los valores actuales en el buffer
-        $materia = $this->materias->firstWhere('id', $inscripcionId);
+        $alumno = auth()->user()->alumno;
+        $materias = app(CalificacionService::class)->obtenerMateriasParaCapturar($alumno);
+
+        $materia = $materias->firstWhere('id', $inscripcionId);
         if ($materia) {
             $this->edits[$inscripcionId] = [
                 'parcial1' => $materia['parcial1'],
@@ -74,18 +47,16 @@ class Calificaciones extends Component
 
         try {
             $inscripcion = Inscripcion::findOrFail($inscripcionId);
+            $alumno = auth()->user()->alumno;
 
             app(CalificacionService::class)->guardar(
                 $inscripcion,
-                $this->alumno,
+                $alumno,
                 $this->edits[$inscripcionId]
             );
 
             unset($this->edits[$inscripcionId]);
             $this->abierta = null;
-
-            // Refrescar computed
-            unset($this->materias, $this->resumen);
 
             $this->dispatch('toast', tipo: 'success', mensaje: 'Calificaciones guardadas');
         } catch (CalificacionException $e) {
@@ -95,6 +66,16 @@ class Calificaciones extends Component
 
     public function render()
     {
-        return view('livewire.alumno.calificaciones');
+        $alumno = auth()->user()->alumno;
+        $servicio = app(CalificacionService::class);
+
+        // UNA sola llamada que cachea internamente. Luego 'resumen' reusa el cache.
+        $materias = $servicio->obtenerMateriasParaCapturar($alumno);
+        $resumen  = $servicio->obtenerResumenPeriodo($alumno);
+
+        return view('livewire.alumno.calificaciones', [
+            'materias' => $materias,
+            'resumen'  => $resumen,
+        ]);
     }
 }
