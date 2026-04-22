@@ -1,7 +1,13 @@
 import './bootstrap';
 
-import Alpine from 'alpinejs';
+// Plugin de Alpine: x-collapse (Livewire 3 ya carga Alpine base)
+import collapse from '@alpinejs/collapse';
 
-window.Alpine = Alpine;
+document.addEventListener('alpine:init', () => {
+    window.Alpine.plugin(collapse);
+});
 
-Alpine.start();
+// Chart.js auto-hospedado (evita el bloqueo de Tracking Prevention de Edge)
+import { Chart, registerables } from 'chart.js';
+Chart.register(...registerables);
+window.Chart = Chart;

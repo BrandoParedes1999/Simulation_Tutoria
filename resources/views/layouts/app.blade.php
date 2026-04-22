@@ -12,8 +12,6 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
 
-
-
     {{-- Vite assets --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -68,5 +66,10 @@
             </div>
         </template>
     </div>
+
+    {{-- Scripts acumulados por @push de cada vista --}}
+    @stack('scripts')
+</body>
+</html>
 </body>
 </html>

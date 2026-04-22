@@ -18,9 +18,6 @@ class ElegibilidadService
     const PP_PORCENTAJE_CREDITOS = 60;
     const PP_SEMESTRE_MIN = 6;
 
-    /**
-     * Evalúa elegibilidad para SS y PP.
-     */
     public function evaluar(Alumno $alumno): array
     {
         $totalCreditos = (int) DB::table('materias_malla')
@@ -81,9 +78,6 @@ class ElegibilidadService
         ];
     }
 
-    /**
-     * Evolución del promedio por periodo (histórico).
-     */
     public function obtenerEvolucionPromedio(Alumno $alumno): array
     {
         return DB::table('inscripciones')
@@ -105,9 +99,6 @@ class ElegibilidadService
             ->toArray();
     }
 
-    /**
-     * Datos del periodo actual: KPIs + materias para el radar.
-     */
     public function obtenerDatosPeriodo(Alumno $alumno, ?Periodo $periodo): array
     {
         if (!$periodo) {
@@ -159,9 +150,6 @@ class ElegibilidadService
         ];
     }
 
-    /**
-     * Últimos mensajes recibidos por el alumno.
-     */
     public function obtenerMensajesRecientes(Alumno $alumno, int $limit = 3)
     {
         return Mensaje::where('destinatario_id', $alumno->usuario_id)
@@ -178,5 +166,24 @@ class ElegibilidadService
                 'prioridad'  => $m->prioridad,
             ])
             ->toArray();
+    }
+
+    /**
+     * Helper para días transcurridos del periodo (nunca negativo).
+     */
+    public function diasTranscurridosPeriodo(?Periodo $periodo): int
+    {
+        if (!$periodo) return 0;
+        $dias = (int) $periodo->fecha_inicio->startOfDay()->diffInDays(now()->startOfDay(), false);
+        return max(0, $dias);
+    }
+
+    /**
+     * Días hasta fecha límite de baja (negativo si ya pasó).
+     */
+    public function diasHastaLimiteBaja(?Periodo $periodo): ?int
+    {
+        if (!$periodo || !$periodo->fecha_limite_baja) return null;
+        return (int) now()->startOfDay()->diffInDays($periodo->fecha_limite_baja->startOfDay(), false);
     }
 }
