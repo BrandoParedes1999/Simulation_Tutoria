@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TutorController;
+use App\Livewire\Alumno\MallaCurricular;
 
 // ── Ruta raíz: redirige según autenticación ──
 Route::get('/', function () {
@@ -40,13 +42,28 @@ Route::middleware(['auth', 'rol:tutor'])
     ->prefix('tutor')
     ->name('tutor.')
     ->group(function () {
-        Route::view('/dashboard', 'tutor.dashboard')->name('dashboard');
+        Route::get('/dashboard', [TutorController::class, 'dashboard'])->name('dashboard');
         Route::view('/alumnos', 'tutor.alumnos')->name('alumnos');
-        Route::get('/alumnos/{id}', fn($id) => view('tutor.alumno-detalle', ['id' => $id]))->name('alumno-detalle');
+        Route::get('/alumnos/{id}', fn($id) =>view('tutor.detalle_alumno', ['id' => $id]))->name('alumnos.detalle');
         Route::view('/alertas', 'tutor.alertas')->name('alertas');
         Route::view('/mensajes', 'tutor.mensajes')->name('mensajes');
         Route::view('/reportes', 'tutor.reportes')->name('reportes');
+        
+        ///se agrego esto
+        Route::post('/mensajes/enviar',
+            [TutorController::class, 'enviarMensaje']
+        )->name('mensajes.enviar');
+
+        Route::post('/mensajes/{id}/responder',
+            [TutorController::class, 'responderMensaje']
+        )->name('mensajes.responder');
+
+        Route::post('/mensajes/{id}/leer',
+            [TutorController::class, 'marcarLeido']
+        )->name('mensajes.leer');
+        
     });
+    
 
 // ═══ ADMIN ═══
 Route::middleware(['auth', 'rol:admin'])
