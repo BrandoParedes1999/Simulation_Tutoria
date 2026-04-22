@@ -175,7 +175,7 @@ if ($periodoActual) {
                 </div>
                 <p class="text-2xl font-bold text-blue-900 mt-3">{{ $alumnos->count() }}</p>
                 <p class="text-xs text-blue-400 mt-0.5">Alumnos asignados</p>
-                <p class="text-xs text-emerald-500 mt-2">Grupo asignado activo</p>
+                <p class="text-xs text-emerald-500 mt-2">Grupo asignado </p>
             </div>
 
             <div class="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">

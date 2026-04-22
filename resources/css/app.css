@@ -21,6 +21,7 @@
 body {
     transition: opacity 0.15s ease-in-out;
 }
+<<<<<<< Updated upstream
 
 /* Ocultar scrollbar en el selector de semestres */
 .scrollbar-hide {
@@ -30,3 +31,5 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
     display: none;
 }
+=======
+>>>>>>> Stashed changes
