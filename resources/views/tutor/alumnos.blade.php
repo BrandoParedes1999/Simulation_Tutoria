@@ -23,6 +23,19 @@
             busqueda: '',
             semestre: '',
             alerta: '',
+
+            sortCol: 'nombre',
+            sortDir: 'asc',
+
+            ordenar(col) {
+                if (this.sortCol === col) {
+                    this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+                } else {
+                    this.sortCol = col;
+                    this.sortDir = 'asc';
+                }
+            },
+
             alumnos: {{ $alumnos->map(fn($a) => [
                 'id'        => $a->id,
                 'nombre'    => $a->usuario->name,
@@ -35,17 +48,32 @@
             ])->values()->toJson() }},
 
             get filtrados() {
-                return this.alumnos.filter(a => {
-                    const q = this.busqueda.toLowerCase();
-                    const matchBusqueda = !q ||
-                        a.nombre.toLowerCase().includes(q) ||
-                        a.matricula.toLowerCase().includes(q);
-                    const matchSemestre = !this.semestre || a.semestre == this.semestre;
-                    const matchAlerta   = !this.alerta ||
-                        (this.alerta === 'con' && a.alertas > 0) ||
-                        (this.alerta === 'sin' && a.alertas === 0);
-                    return matchBusqueda && matchSemestre && matchAlerta;
-                });
+                return this.alumnos
+                    .filter(a => {
+                        const q = this.busqueda.toLowerCase();
+                        const matchBusqueda = !q ||
+                            a.nombre.toLowerCase().includes(q) ||
+                            a.matricula.toLowerCase().includes(q);
+
+                        const matchSemestre = !this.semestre || a.semestre == this.semestre;
+
+                        const matchAlerta = !this.alerta ||
+                            (this.alerta === 'con' && a.alertas > 0) ||
+                            (this.alerta === 'sin' && a.alertas === 0);
+
+                        return matchBusqueda && matchSemestre && matchAlerta;
+                    })
+                    .sort((a, b) => {
+                        let valA = a[this.sortCol];
+                        let valB = b[this.sortCol];
+
+                        if (typeof valA === 'string') valA = valA.toLowerCase();
+                        if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                        if (valA < valB) return this.sortDir === 'asc' ? -1 : 1;
+                        if (valA > valB) return this.sortDir === 'asc' ? 1 : -1;
+                        return 0;
+                    });
             },
 
             exportarCSV() {
@@ -108,22 +136,53 @@
                 <table class="w-full">
                     <thead>
                         <tr class="bg-blue-50/60 border-b border-blue-100">
-                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">Alumno</th>
-                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">Matrícula</th>
-                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">Semestre</th>
-                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">Promedio</th>
-                            <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">Alertas</th>
+
+                            <!-- ALUMNO -->
+                            <th @click="ordenar('nombre')"
+                                class="cursor-pointer select-none text-left text-xs font-semibold text-blue-600 px-4 py-3">
+                                <div class="flex items-center gap-1">
+                                    Alumno
+                                    <span class="flex flex-col text-[10px] leading-none">
+                                        ↑↓
+                                    </span>
+                                </div>
+                            </th>
+
+                            <!-- MATRICULA -->
+                            <th @click="ordenar('matricula')"
+                                class="cursor-pointer select-none text-left text-xs font-semibold text-blue-600 px-4 py-3">
+                                Matrícula ↑↓
+                            </th>
+
+                            <!-- SEMESTRE -->
+                            <th @click="ordenar('semestre')"
+                                class="cursor-pointer select-none text-left text-xs font-semibold text-blue-600 px-4 py-3">
+                                Semestre ↑↓
+                            </th>
+
+                            <!-- PROMEDIO -->
+                            <th @click="ordenar('promedio')"
+                                class="cursor-pointer select-none text-left text-xs font-semibold text-blue-600 px-4 py-3">
+                                Promedio ↑↓
+                            </th>
+
+                            <!-- ALERTAS -->
+                            <th @click="ordenar('alertas')"
+                                class="cursor-pointer select-none text-left text-xs font-semibold text-blue-600 px-4 py-3">
+                                Alertas ↑↓
+                            </th>
+
                             <th class="text-left text-xs font-semibold text-blue-600 px-4 py-3">Acción</th>
                         </tr>
                     </thead>
+
                     <tbody>
                         <template x-for="a in filtrados" :key="a.id">
                             <tr class="border-b border-blue-50 hover:bg-blue-50/40 transition-colors">
 
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center
-                                                    justify-center flex-shrink-0">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                                             <span class="text-blue-700 font-bold text-sm"
                                                   x-text="a.nombre.charAt(0).toUpperCase()"></span>
                                         </div>
@@ -134,47 +193,34 @@
                                     </div>
                                 </td>
 
-                                <td class="px-4 py-3">
-                                    <span class="text-sm text-blue-600 font-medium" x-text="a.matricula"></span>
-                                </td>
+                                <td class="px-4 py-3 text-sm text-blue-600 font-medium" x-text="a.matricula"></td>
 
-                                <td class="px-4 py-3">
-                                    <span class="text-sm text-slate-600" x-text="a.semestre + '°'"></span>
-                                </td>
+                                <td class="px-4 py-3 text-sm text-slate-600" x-text="a.semestre + '°'"></td>
 
-                                {{--
-                                    FIX #9: Colores en escala 0-100.
-                                    Antes: >= 9 (todos con promedio > 9 aparecían verdes, ej. 75 >= 9 = TRUE).
-                                    Ahora: >= 90 = verde, >= 80 = azul, >= 70 = ámbar, < 70 = rojo.
-                                --}}
                                 <td class="px-4 py-3">
                                     <span class="text-sm font-bold"
                                           :class="{
                                               'text-emerald-600': a.promedio >= 90,
-                                              'text-blue-600':    a.promedio >= 80 && a.promedio < 90,
-                                              'text-amber-500':   a.promedio >= 70 && a.promedio < 80,
-                                              'text-red-500':     a.promedio < 70
+                                              'text-blue-600': a.promedio >= 80,
+                                              'text-amber-500': a.promedio >= 70,
+                                              'text-red-500': a.promedio < 70
                                           }"
-                                          x-text="a.promedio > 0 ? a.promedio.toFixed(1) + ' pts' : '—'"></span>
+                                          x-text="a.promedio.toFixed(1) + ' pts'"></span>
                                 </td>
 
                                 <td class="px-4 py-3">
                                     <template x-if="a.alertas > 0">
-                                        <span class="inline-flex items-center justify-center
-                                                     w-6 h-6 bg-red-500 text-white text-xs
-                                                     font-bold rounded-full"
+                                        <span class="w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full inline-flex items-center justify-center"
                                               x-text="a.alertas"></span>
                                     </template>
                                     <template x-if="a.alertas === 0">
-                                        <span class="text-slate-300 text-sm">—</span>
+                                        <span class="text-slate-300">—</span>
                                     </template>
                                 </td>
 
                                 <td class="px-4 py-3">
                                     <a :href="`/tutor/alumnos/${a.id}`"
-                                       class="px-3 py-1.5 border border-blue-200 rounded-lg
-                                              text-blue-600 text-xs font-medium
-                                              hover:bg-blue-50 transition">
+                                       class="px-3 py-1.5 border border-blue-200 rounded-lg text-blue-600 text-xs font-medium hover:bg-blue-50">
                                         Ver
                                     </a>
                                 </td>
@@ -190,11 +236,11 @@
                     </tbody>
                 </table>
 
-                <div class="px-4 py-3 border-t border-blue-50 flex items-center justify-between">
+                <div class="px-4 py-3 border-t border-blue-50 flex justify-between">
                     <span class="text-xs text-slate-400">
-                        Mostrando <span x-text="filtrados.length"></span>
-                        de {{ $alumnos->count() }} alumnos
+                        Mostrando <span x-text="filtrados.length"></span> de {{ $alumnos->count() }}
                     </span>
+
                     <button @click="exportarCSV()"
                             class="text-xs text-blue-600 font-medium hover:underline">
                         Exportar Lista

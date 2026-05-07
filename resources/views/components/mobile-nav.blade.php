@@ -29,6 +29,7 @@
         ['ruta' => 'alumno.materias', 'label' => 'Materias', 'icon' => 'lucide-book-open', 'badge' => 0],
         ['ruta' => 'alumno.calificaciones', 'label' => 'Calif.', 'icon' => 'lucide-award', 'badge' => 0],
         ['ruta' => 'alumno.mensajes', 'label' => 'Buzón', 'icon' => 'lucide-mail', 'badge' => $badgeMensajes],
+        ['ruta' => 'alumno.ayuda', 'label' => 'Ayuda', 'icon' => 'lucide-life-buoy'],
     ];
 
     $linksTutor = [
@@ -37,6 +38,7 @@
         ['ruta' => 'tutor.alertas', 'label' => 'Alertas', 'icon' => 'lucide-alert-triangle', 'badge' => $badgeAlertas],
         ['ruta' => 'tutor.mensajes', 'label' => 'Buzón', 'icon' => 'lucide-mail', 'badge' => $badgeMensajes],
         ['ruta' => 'tutor.reportes', 'label' => 'Reportes', 'icon' => 'lucide-file-text', 'badge' => 0],
+        ['ruta' => 'tutor.ayuda', 'label' => 'Ayuda', 'icon' => 'lucide-life-buoy'],
     ];
 
     $links = match($rol) {
@@ -47,7 +49,7 @@
 @endphp
 
 <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-blue-100 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-    <div class="grid grid-cols-5 max-w-lg mx-auto">
+    <div class="grid grid-cols-6 max-w-lg mx-auto">
         @foreach($links as $link)
             @php $activo = request()->routeIs($link['ruta']); @endphp
             <a href="{{ route($link['ruta']) }}"

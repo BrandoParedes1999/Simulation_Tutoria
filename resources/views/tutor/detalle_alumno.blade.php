@@ -274,9 +274,18 @@
                                       x2="{{ $svgW - $pad }}" y2="{{ $yg }}"
                                       stroke="#e2e8f0" stroke-width="1"
                                       stroke-dasharray="4,4"/>
+                                    <text x="{{ $svgW - 10 }}" y="15"
+                                     text-anchor="end"
+                                     font-size="10"
+                                     fill="#94a3b8">
+                                     Escala: 0 - 100
+                                     </text>
                                 <text x="{{ $pad - 5 }}" y="{{ $yg + 3 }}"
                                       text-anchor="end" font-size="10"
                                       fill="#94a3b8">{{ $guia }}</text>
+                                      <text x="10" y="15" font-size="10" fill="#64748b">
+                                     Promedio (0 - 100)
+                                     </text>
                             @endforeach
 
                             @if(strlen(trim($pts)) > 0)
@@ -300,6 +309,13 @@
                                 @endphp
                                 @if(!$d['sin_datos'] && $d['prom'] > 0)
                                     <circle cx="{{ $x }}" cy="{{ $y }}" r="5" fill="#1d4ed8"/>
+                                    <text x="{{ $x }}" y="{{ $y - 10 }}"
+                                    text-anchor="middle"
+                                    font-size="9"
+                                    fill="#1d4ed8"
+                                    font-weight="bold">
+                                    {{ $d['prom'] }}
+                                    </text>
                                     <text x="{{ $x }}" y="{{ $y - 8 }}"
                                           text-anchor="middle" font-size="9"
                                           fill="#1d4ed8">{{ $d['prom'] }}</text>
@@ -310,6 +326,12 @@
                                 <text x="{{ $x }}" y="{{ $svgH + 10 }}"
                                       text-anchor="middle" font-size="9"
                                       fill="#94a3b8">{{ $d['sem'] }}</text>
+                                      <text x="{{ $svgW/2 }}" y="{{ $svgH + 25 }}"
+                                      text-anchor="middle"
+                                      font-size="10"
+                                      fill="#94a3b8">
+                                      Periodos académicos
+                          </text>
                             @endforeach
                         </svg>
                     @endif

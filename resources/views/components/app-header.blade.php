@@ -9,6 +9,7 @@
         ['ruta' => 'alumno.calificaciones', 'label' => 'Calif.', 'icon' => 'lucide-award'],
         ['ruta' => 'alumno.historial', 'label' => 'Historial', 'icon' => 'lucide-clock'],
         ['ruta' => 'alumno.mensajes', 'label' => 'Mensajes', 'icon' => 'lucide-mail'],
+        ['ruta' => 'alumno.ayuda', 'label' => 'Ayuda', 'icon' => 'lucide-life-buoy'],
     ];
 
     $linksTutor = [
@@ -17,6 +18,7 @@
         ['ruta' => 'tutor.alertas', 'label' => 'Alertas', 'icon' => 'lucide-alert-triangle'],
         ['ruta' => 'tutor.mensajes', 'label' => 'Mensajes', 'icon' => 'lucide-mail'],
         ['ruta' => 'tutor.reportes', 'label' => 'Reportes', 'icon' => 'lucide-file-text'],
+        ['ruta' => 'tutor.ayuda', 'label' => 'Ayuda', 'icon' => 'lucide-life-buoy'],
     ];
 
     $links = match($rol) {

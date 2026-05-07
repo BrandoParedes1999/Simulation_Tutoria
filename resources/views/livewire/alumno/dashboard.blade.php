@@ -39,6 +39,7 @@
     {{-- ════════════════════════════════════════ --}}
     {{-- KPIs (4 tarjetas)                        --}}
     {{-- ════════════════════════════════════════ --}}
+    @php $esNuevoIngreso = $alumno->semestre_actual === 1 && $estadisticas['creditos_aprobados'] === 0; @endphp
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div class="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
             <div class="p-1.5 rounded-lg w-fit bg-blue-50">
@@ -51,23 +52,47 @@
             <p class="text-[10px] {{ $clasificacionPromedio['color'] }} mt-1">{{ $clasificacionPromedio['texto'] }}</p>
         </div>
 
-        <div class="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
-            <div class="p-1.5 rounded-lg w-fit bg-blue-50">
-                @svg('lucide-book-open', 'w-3.5 h-3.5 text-blue-600')
-            </div>
-            <p class="text-2xl sm:text-3xl font-bold text-blue-700 mt-2">{{ $datosPeriodo['materias_en_curso'] }}</p>
-            <p class="text-xs font-medium text-blue-900">Materias en curso</p>
-            <p class="text-[10px] text-blue-400 mt-1">{{ $datosPeriodo['creditos_periodo'] }} créditos este semestre</p>
+       <div class="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
+    <div class="flex items-start justify-between">
+        <div class="p-1.5 rounded-lg w-fit bg-blue-50">
+            @svg('lucide-book-open', 'w-3.5 h-3.5 text-blue-600')
         </div>
+        @if($esNuevoIngreso)
+            <span class="inline-flex items-center gap-1 text-[10px] font-medium bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
+                @svg('lucide-info', 'w-3 h-3')
+                Nuevo ingreso
+            </span>
+        @endif
+    </div>
+    <p class="text-2xl sm:text-3xl font-bold text-blue-700 mt-2">
+        {{ $esNuevoIngreso ? '—' : $datosPeriodo['materias_en_curso'] }}
+    </p>
+    <p class="text-xs font-medium text-blue-900">Materias en curso</p>
+    <p class="text-[10px] text-blue-400 mt-1">
+        {{ $esNuevoIngreso ? 'Inscribe tus materias para comenzar' : $datosPeriodo['creditos_periodo'] . ' créditos este semestre' }}
+    </p>
+</div>
 
-        <div class="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
-            <div class="p-1.5 rounded-lg w-fit bg-emerald-50">
-                @svg('lucide-award', 'w-3.5 h-3.5 text-emerald-600')
-            </div>
-            <p class="text-2xl sm:text-3xl font-bold text-blue-700 mt-2">{{ $estadisticas['creditos_aprobados'] }}</p>
-            <p class="text-xs font-medium text-blue-900">Créditos aprobados</p>
-            <p class="text-[10px] text-blue-400 mt-1">{{ $estadisticas['porcentaje_avance'] }}% de la carrera completado</p>
+       <div class="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
+    <div class="flex items-start justify-between">
+        <div class="p-1.5 rounded-lg w-fit bg-emerald-50">
+            @svg('lucide-award', 'w-3.5 h-3.5 text-emerald-600')
         </div>
+        @if($esNuevoIngreso)
+            <span class="inline-flex items-center gap-1 text-[10px] font-medium bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
+                @svg('lucide-info', 'w-3 h-3')
+                Nuevo ingreso
+            </span>
+        @endif
+    </div>
+    <p class="text-2xl sm:text-3xl font-bold text-blue-700 mt-2">
+        {{ $esNuevoIngreso ? '—' : $estadisticas['creditos_aprobados'] }}
+    </p>
+    <p class="text-xs font-medium text-blue-900">Créditos aprobados</p>
+    <p class="text-[10px] text-blue-400 mt-1">
+        {{ $esNuevoIngreso ? 'Aún no has completado periodos' : $estadisticas['porcentaje_avance'] . '% de la carrera completado' }}
+    </p>
+</div>
 
         <div class="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
             <div class="p-1.5 rounded-lg w-fit bg-indigo-50">
@@ -431,14 +456,24 @@
                         </div>
                     </div>
                     <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-center gap-2">
-                        @svg('lucide-calendar-check', 'w-4 h-4 text-blue-600 flex-shrink-0')
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-semibold text-blue-900">Fin del periodo</p>
-                            <p class="text-[11px] text-blue-700">
-                                {{ $periodo->fecha_fin->locale('es')->isoFormat('D MMM YYYY') }}
-                            </p>
-                        </div>
-                    </div>
+                     @svg('lucide-calendar-check', 'w-4 h-4 text-blue-600 flex-shrink-0')
+                    <div class="flex-1 min-w-0">
+                    <p class="text-xs font-semibold text-blue-900">Fin del periodo</p>
+                    @php
+                    $diasFinPeriodo = (int) now()->startOfDay()->diffInDays($periodo->fecha_fin->startOfDay(), false);
+                    @endphp
+                   <p class="text-[11px] text-blue-700">
+                   {{ $periodo->fecha_fin->locale('es')->isoFormat('D MMM YYYY') }}
+                @if($diasFinPeriodo > 0)
+                   · en {{ $diasFinPeriodo }} {{ $diasFinPeriodo === 1 ? 'día' : 'días' }}
+                 @elseif($diasFinPeriodo === 0)
+                · hoy
+                 @else
+                · finalizado
+              @endif
+           </p>
+        </div>
+    </div>
                     <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex items-center gap-2">
                         @svg('lucide-clock', 'w-4 h-4 text-emerald-600 flex-shrink-0')
                         <div class="flex-1 min-w-0">

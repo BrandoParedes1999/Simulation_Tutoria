@@ -72,6 +72,9 @@
             urlResponder: '{{ url('tutor/mensajes') }}',
             urlLeer:      '{{ url('tutor/mensajes') }}',
 
+            // CAMBIO H6: máximo de caracteres para el asunto
+            asuntoMaxLen: 80,
+
             textoPlantillas: {{ json_encode($textoPlantillas) }},
 
             alumnos: {{ $alumnos->map(fn($a) => [
@@ -198,11 +201,12 @@
                 <h1 class="text-lg sm:text-xl font-bold text-blue-900">Mensajes y Notificaciones</h1>
                 <p class="text-sm text-blue-400 mt-0.5">Comunícate con tus alumnos y envía alertas de seguimiento</p>
             </div>
+            {{-- CAMBIO H1: renombrado de "Nueva notificación" → "Nuevo mensaje" --}}
             <button @click="modalAbierto = true"
                     class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm
                            font-medium rounded-xl hover:bg-blue-700 transition">
                 @svg('lucide-plus', 'w-4 h-4')
-                Nueva notificación
+                Nuevo mensaje
             </button>
         </div>
 
@@ -237,21 +241,45 @@
                                 </p>
                             </div>
                             <div class="flex gap-1 ml-1">
-                                <button @click="modalAbierto=true;tipoDestinatario='alumno';destinatarioId={{ $ac->usuario_id }};usarPlantilla('bajo_rendimiento','Bajo rendimiento')"
-                                        class="p-1.5 bg-red-50 rounded-lg hover:bg-red-100 transition"
-                                        title="Bajo rendimiento">
-                                    @svg('lucide-trending-down', 'w-3.5 h-3.5 text-red-400')
-                                </button>
-                                <button @click="modalAbierto=true;tipoDestinatario='alumno';destinatarioId={{ $ac->usuario_id }};usarPlantilla('plan_recuperacion','Plan de recuperación')"
-                                        class="p-1.5 bg-blue-50 rounded-lg hover:bg-blue-100 transition"
-                                        title="Plan de recuperación">
-                                    @svg('lucide-book-open', 'w-3.5 h-3.5 text-blue-400')
-                                </button>
-                                <button @click="modalAbierto=true;tipoDestinatario='alumno';destinatarioId={{ $ac->usuario_id }};usarPlantilla('invitacion_asesoria','Invitación a asesoría')"
-                                        class="p-1.5 bg-teal-50 rounded-lg hover:bg-teal-100 transition"
-                                        title="Agendar asesoría">
-                                    @svg('lucide-calendar', 'w-3.5 h-3.5 text-teal-400')
-                                </button>
+                                {{-- Tooltip: Enviar alerta de bajo rendimiento --}}
+                                <div class="relative group">
+                                    <button @click="modalAbierto=true;tipoDestinatario='alumno';destinatarioId={{ $ac->usuario_id }};usarPlantilla('bajo_rendimiento','Bajo rendimiento')"
+                                            class="p-1.5 bg-red-50 rounded-lg hover:bg-red-100 transition">
+                                        @svg('lucide-trending-down', 'w-3.5 h-3.5 text-red-400')
+                                    </button>
+                                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10 pointer-events-none">
+                                        <div class="bg-slate-800 text-white text-xs rounded-lg px-2.5 py-1.5 whitespace-nowrap shadow-lg">
+                                            Enviar alerta de bajo rendimiento
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {{-- Tooltip: Proponer plan de recuperación --}}
+                                <div class="relative group">
+                                    <button @click="modalAbierto=true;tipoDestinatario='alumno';destinatarioId={{ $ac->usuario_id }};usarPlantilla('plan_recuperacion','Plan de recuperación')"
+                                            class="p-1.5 bg-blue-50 rounded-lg hover:bg-blue-100 transition">
+                                        @svg('lucide-book-open', 'w-3.5 h-3.5 text-blue-400')
+                                    </button>
+                                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10 pointer-events-none">
+                                        <div class="bg-slate-800 text-white text-xs rounded-lg px-2.5 py-1.5 whitespace-nowrap shadow-lg">
+                                            Proponer plan de recuperación
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {{-- Tooltip: Invitar a sesión de asesoría --}}
+                                <div class="relative group">
+                                    <button @click="modalAbierto=true;tipoDestinatario='alumno';destinatarioId={{ $ac->usuario_id }};usarPlantilla('invitacion_asesoria','Invitación a asesoría')"
+                                            class="p-1.5 bg-teal-50 rounded-lg hover:bg-teal-100 transition">
+                                        @svg('lucide-calendar', 'w-3.5 h-3.5 text-teal-400')
+                                    </button>
+                                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10 pointer-events-none">
+                                        <div class="bg-slate-800 text-white text-xs rounded-lg px-2.5 py-1.5 whitespace-nowrap shadow-lg">
+                                            Invitar a sesión de asesoría
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     @endforeach
@@ -312,17 +340,26 @@
                                  : 'hover:bg-blue-50/50'"
                              class="p-3 cursor-pointer transition-colors">
                             <div class="flex items-start gap-2.5">
-                                <div class="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <span class="text-blue-700 font-bold text-xs"
-                                          x-text="(conv.remitente_id !== userId ? conv.remitente : conv.destinatario).charAt(0).toUpperCase()"></span>
+                                <div class="relative flex-shrink-0">
+                                    <div class="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <span class="text-blue-700 font-bold text-xs"
+                                              x-text="(conv.remitente_id !== userId ? conv.remitente : conv.destinatario).charAt(0).toUpperCase()"></span>
+                                    </div>
+                                    {{-- CAMBIO H6: punto indicador "no leído" --}}
+                                    <template x-if="!conv.leido && conv.remitente_id !== userId">
+                                        <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-blue-500 border-2 border-white rounded-full"></span>
+                                    </template>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center justify-between">
-                                        <p class="text-xs font-semibold text-blue-900 truncate"
+                                        {{-- CAMBIO H6: nombre en negrita cuando no leído --}}
+                                        <p :class="!conv.leido && conv.remitente_id !== userId ? 'font-bold' : 'font-semibold'"
+                                           class="text-xs text-blue-900 truncate"
                                            x-text="conv.remitente_id !== userId ? conv.remitente : conv.destinatario"></p>
                                         <span class="text-xs text-slate-400 flex-shrink-0 ml-1" x-text="conv.fecha"></span>
                                     </div>
-                                    <p class="text-xs text-slate-600 truncate mt-0.5" x-text="conv.asunto"></p>
+                                    <p :class="!conv.leido && conv.remitente_id !== userId ? 'text-slate-700 font-medium' : 'text-slate-500'"
+                                       class="text-xs truncate mt-0.5" x-text="conv.asunto"></p>
                                     <div class="flex items-center gap-1 mt-1">
                                         <template x-if="conv.prioridad === 'urgente'">
                                             <span class="text-xs px-1.5 py-0.5 bg-red-100 text-red-600 rounded-full font-medium">Urgente</span>
@@ -349,31 +386,24 @@
                     <div class="flex flex-col items-center justify-center h-full">
                         @svg('lucide-message-circle', 'w-12 h-12 text-blue-100 mb-3')
                         <p class="text-sm text-slate-400">Selecciona una conversación</p>
-                        <p class="text-xs text-slate-300 mt-1">o crea una nueva notificación</p>
+                        <p class="text-xs text-slate-300 mt-1">o crea un nuevo mensaje</p>
                     </div>
                 </template>
 
                 <template x-if="conversacionActiva">
                     <div class="flex flex-col h-full">
 
-                        <div class="p-4 border-b border-blue-50 flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <span class="text-blue-700 font-bold text-sm"
-                                          x-text="(conversacionActiva.remitente_id !== userId ? conversacionActiva.remitente : conversacionActiva.destinatario).charAt(0).toUpperCase()"></span>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-bold text-blue-900"
-                                       x-text="conversacionActiva.remitente_id !== userId ? conversacionActiva.remitente : conversacionActiva.destinatario"></p>
-                                    <p class="text-xs text-blue-400" x-text="conversacionActiva.asunto"></p>
-                                </div>
+                        {{-- CAMBIO H1: eliminado el botón "Nuevo mensaje" del encabezado del chat --}}
+                        <div class="p-4 border-b border-blue-50 flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-blue-700 font-bold text-sm"
+                                      x-text="(conversacionActiva.remitente_id !== userId ? conversacionActiva.remitente : conversacionActiva.destinatario).charAt(0).toUpperCase()"></span>
                             </div>
-                            <button @click="modalAbierto = true; tipoDestinatario = 'alumno';"
-                                    class="flex items-center gap-1.5 px-3 py-1.5 border border-blue-200
-                                           rounded-xl text-blue-600 text-xs font-medium hover:bg-blue-50 transition">
-                                @svg('lucide-plus', 'w-3.5 h-3.5')
-                                Nuevo mensaje
-                            </button>
+                            <div>
+                                <p class="text-sm font-bold text-blue-900"
+                                   x-text="conversacionActiva.remitente_id !== userId ? conversacionActiva.remitente : conversacionActiva.destinatario"></p>
+                                <p class="text-xs text-blue-400" x-text="conversacionActiva.asunto"></p>
+                            </div>
                         </div>
 
                         <div class="flex-1 overflow-y-auto p-4 space-y-4">
@@ -385,7 +415,14 @@
                                             <p class="text-xs font-semibold mb-1 text-blue-200" x-text="conversacionActiva.asunto"></p>
                                             <p class="text-sm leading-relaxed" x-text="conversacionActiva.contenido"></p>
                                         </div>
-                                        <p class="text-xs text-slate-400 text-right mt-1" x-text="conversacionActiva.fecha"></p>
+                                        <div class="flex items-center justify-end gap-1 mt-1">
+                                            <p class="text-xs text-slate-400" x-text="conversacionActiva.fecha"></p>
+                                            {{-- CAMBIO H6: azul intenso = leído por el destinatario, gris = entregado sin leer --}}
+                                            <span :title="conversacionActiva.leido ? 'Leído' : 'Entregado'"
+                                                  :class="conversacionActiva.leido ? 'text-blue-600' : 'text-slate-300'">
+                                                @svg('lucide-check-check', 'w-3.5 h-3.5')
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </template>
@@ -442,7 +479,7 @@
             </div>
         </div>
 
-        {{-- MODAL NUEVA NOTIFICACIÓN --}}
+        {{-- MODAL NUEVO MENSAJE --}}
         <div x-show="modalAbierto"
              x-transition.opacity
              class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
@@ -453,7 +490,7 @@
 
                 <div class="flex items-start justify-between p-5 border-b border-blue-50">
                     <div>
-                        <h3 class="font-bold text-blue-900">Nueva Notificación</h3>
+                        <h3 class="font-bold text-blue-900">Nuevo Mensaje</h3>
                         <p class="text-xs text-blue-400 mt-0.5">Envía un mensaje de seguimiento a uno o varios alumnos</p>
                     </div>
                     <button @click="modalAbierto = false" class="text-slate-400 hover:text-slate-600">
@@ -468,8 +505,8 @@
                         <button @click="mostrarPlantillas = !mostrarPlantillas"
                                 class="flex items-center gap-1.5 text-sm text-blue-600 font-medium hover:underline">
                             @svg('lucide-sparkles', 'w-4 h-4')
-                            <span x-text="mostrarPlantillas ? 'Ocultar plantillas ▲' : 'Mostrar plantillas ▼'">
-                                Mostrar plantillas ▼
+                            <span x-text="mostrarPlantillas ? 'Mensajes automáticos ▲' : 'Mensajes automáticos ▼'">
+                                Mensajes automáticos ▼
                             </span>
                         </button>
                         <div x-show="mostrarPlantillas" class="grid grid-cols-2 gap-2 mt-3">
@@ -557,12 +594,22 @@
                         </div>
                     </div>
 
-                    {{-- Asunto --}}
+                    {{-- CAMBIO H1: Asunto con contador de caracteres --}}
                     <div>
-                        <p class="text-xs font-semibold text-slate-600 mb-1.5">Asunto</p>
-                        <input x-model="asunto" type="text" placeholder="Escribe el asunto..."
+                        <div class="flex items-center justify-between mb-1.5">
+                            <p class="text-xs font-semibold text-slate-600">Asunto</p>
+                            {{-- Contador: se vuelve rojo cuando queda poco espacio --}}
+                            <span :class="asunto.length >= asuntoMaxLen ? 'text-red-500 font-semibold' : asunto.length >= asuntoMaxLen * 0.85 ? 'text-amber-500' : 'text-slate-400'"
+                                  class="text-xs tabular-nums"
+                                  x-text="asunto.length + ' / ' + asuntoMaxLen"></span>
+                        </div>
+                        <input x-model="asunto"
+                               :maxlength="asuntoMaxLen"
+                               type="text"
+                               placeholder="Escribe el asunto..."
                                class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm
                                       text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder-slate-300">
+                        <p class="text-xs text-slate-400 mt-1">Máximo {{ 80 }} caracteres para que el asunto no se corte en las notificaciones.</p>
                     </div>
 
                     {{-- Mensaje --}}

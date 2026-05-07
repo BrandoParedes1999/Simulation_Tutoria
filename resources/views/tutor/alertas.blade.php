@@ -48,7 +48,8 @@
                 'fecha'     => $a->created_at->format('d/m/Y'),
                 'fecha_ts'  => $a->created_at->timestamp,
             ])->values()->toJson() }},
-
+alertaSeleccionada: null,
+mostrarModal: false,
             get filtradas() {
                 const ahora  = Math.floor(Date.now() / 1000);
                 const semana = 7  * 86400;
@@ -77,27 +78,75 @@
             csrfToken:  '{{ csrf_token() }}',
 
             // FIX: persistir en BD además de actualizar Alpine
-            marcarAtendida(alerta) {
-                fetch(this.urlAtender + '/' + alerta.id + '/atender', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': this.csrfToken,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({}),
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.ok) {
-                        alerta.atendida = true;
-                    } else {
-                        alert('Error al marcar la alerta: ' + (data.error || 'desconocido'));
-                    }
-                })
-                .catch(() => alert('Error de conexión al marcar la alerta'));
-            }
-        }">
+           marcarAtendida(alerta) {
+    this.alertaSeleccionada = alerta;
+    this.mostrarModal = true;
+},
+confirmarAtendida() {
 
+    fetch(this.urlAtender + '/' + this.alertaSeleccionada.id + '/atender', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': this.csrfToken,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            this.alertaSeleccionada.atendida = true;
+            this.mostrarModal = false;
+        } else {
+            alert('Error al marcar la alerta: ' + (data.error || 'desconocido'));
+        }
+    })
+    .catch(() => alert('Error de conexión al marcar la alerta'));
+},
+      tiempoRelativo(fechaTs) {
+    const ahora = Math.floor(Date.now() / 1000);
+    const diff = ahora - fechaTs;
+
+    const minutos = Math.floor(diff / 60);
+    const horas   = Math.floor(diff / 3600);
+    const dias    = Math.floor(diff / 86400);
+
+    if (minutos < 1) return 'hace unos segundos';
+    if (minutos < 60) return `hace ${minutos} min`;
+    if (horas < 24) return `hace ${horas} h`;
+    return `hace ${dias} día${dias !== 1 ? 's' : ''}`;
+},  }">
+<!-- MODAL -->
+<div x-show="mostrarModal"
+     x-transition
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+
+        <h2 class="text-lg font-bold text-blue-900">
+            Confirmar acción
+        </h2>
+
+        <p class="text-sm text-slate-500 mt-2">
+            ¿Seguro que deseas marcar esta alerta como atendida?
+            <br>
+            <span class="text-red-400 text-xs">Esta acción no se puede deshacer.</span>
+        </p>
+
+        <div class="flex justify-end gap-3 mt-6">
+            <button @click="mostrarModal = false"
+                    class="px-4 py-2 border rounded-lg">
+                Cancelar
+            </button>
+
+            <button @click="confirmarAtendida()"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg">
+                Sí, marcar
+            </button>
+        </div>
+
+    </div>
+</div>
             {{-- Selectores de filtro --}}
             <div class="flex flex-wrap gap-3">
                 <select x-model="prioridad"
@@ -161,6 +210,8 @@
                                        x-text="a.nombre + ' — ' + a.titulo"></p>
                                     <p class="text-xs text-blue-400 mt-0.5" x-text="a.mensaje"></p>
                                     <p class="text-xs text-slate-400 mt-1" x-text="'Generada: ' + a.fecha"></p>
+                                    <p class="text-xs text-blue-400 mt-0.5"
+                                    x-text="tiempoRelativo(a.fecha_ts)"></p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 flex-shrink-0">
@@ -194,6 +245,8 @@
                                        x-text="a.nombre + ' — ' + a.titulo"></p>
                                     <p class="text-xs text-blue-400 mt-0.5" x-text="a.mensaje"></p>
                                     <p class="text-xs text-slate-400 mt-1" x-text="'Generada: ' + a.fecha"></p>
+                                    <p class="text-xs text-blue-400 mt-0.5"
+                                    x-text="tiempoRelativo(a.fecha_ts)"></p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 flex-shrink-0">
@@ -226,6 +279,8 @@
                                        x-text="a.nombre + ' — ' + a.titulo"></p>
                                     <p class="text-xs text-blue-400 mt-0.5" x-text="a.mensaje"></p>
                                     <p class="text-xs text-slate-400 mt-1" x-text="'Generada: ' + a.fecha"></p>
+                                    <p class="text-xs text-blue-400 mt-0.5"
+                                    x-text="tiempoRelativo(a.fecha_ts)"></p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 flex-shrink-0">

@@ -34,11 +34,12 @@ Route::middleware(['auth', 'rol:alumno'])
         Route::get('/malla',           \App\Livewire\Alumno\MallaCurricular::class)->name('malla');
         Route::get('/materias',        \App\Livewire\Alumno\Materias::class)->name('materias');
         Route::get('/calificaciones',  \App\Livewire\Alumno\Calificaciones::class)->name('calificaciones');
-        // FIXED: antes usaban Route::view() con vistas inexistentes → ahora Livewire
         Route::get('/historial',       \App\Livewire\Alumno\Historial::class)->name('historial');
         Route::get('/mensajes',        \App\Livewire\Alumno\Mensajes::class)->name('mensajes');
+        
+        // NUEVA RUTA DE AYUDA ALUMNO
+        Route::get('/ayuda', \App\Livewire\Ayuda::class)->name('ayuda');
 
-        // Rutas JSON para el componente Livewire de mensajes
         Route::post('/mensajes/{mensaje}/responder', [AlumnoMensajeController::class, 'responder'])->name('mensajes.responder');
         Route::post('/mensajes/{mensaje}/leer',      [AlumnoMensajeController::class, 'leer'])->name('mensajes.leer');
     });
@@ -50,20 +51,17 @@ Route::middleware(['auth', 'rol:tutor'])
     ->group(function () {
         Route::view('/dashboard', 'tutor.dashboard')->name('dashboard');
         Route::view('/alumnos',   'tutor.alumnos')->name('alumnos');
-
-        // FIXED: antes era 'tutor.alumno-detalle' (vista inexistente) → ahora 'tutor.detalle_alumno'
         Route::get('/alumnos/{id}', fn ($id) => view('tutor.detalle_alumno', ['id' => $id]))->name('alumno-detalle');
+        Route::view('/alertas',   'tutor.alertas')->name('alertas');
+        Route::view('/mensajes',  'tutor.mensajes')->name('mensajes');
+        Route::view('/reportes',  'tutor.reportes')->name('reportes');
 
-        Route::view('/alertas',  'tutor.alertas')->name('alertas');
-        Route::view('/mensajes', 'tutor.mensajes')->name('mensajes');
-        Route::view('/reportes', 'tutor.reportes')->name('reportes');
+        // NUEVA RUTA DE AYUDA TUTOR
+        Route::get('/ayuda', \App\Livewire\Ayuda::class)->name('ayuda');
 
-        // NUEVO: rutas de mensajería (antes inexistentes → fetch 404)
-        Route::post('/mensajes/enviar',              [TutorMensajeController::class, 'enviar'])->name('mensajes.enviar');
+        Route::post('/mensajes/enviar',               [TutorMensajeController::class, 'enviar'])->name('mensajes.enviar');
         Route::post('/mensajes/{mensaje}/responder', [TutorMensajeController::class, 'responder'])->name('mensajes.responder');
         Route::post('/mensajes/{mensaje}/leer',      [TutorMensajeController::class, 'leer'])->name('mensajes.leer');
-
-        // NUEVO: marcar alerta como atendida (antes solo actualizaba el JS local)
         Route::post('/alertas/{alerta}/atender', [TutorAlertaController::class, 'atender'])->name('alertas.atender');
     });
 

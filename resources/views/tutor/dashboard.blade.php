@@ -139,7 +139,11 @@
             ->with('alumno.usuario:id,name')
             ->take(3)
             ->get();
-
+// Badge mensajes no leídos para el botón del header
+$userId = auth()->id();
+$mensajesNoLeidos = \App\Models\Mensaje::where('destinatario_id', $userId)
+    ->whereNull('leido_en')
+    ->count();
         // Alertas por alumno para sección de atención
         $alertasPorAlumno = \App\Models\Alerta::whereIn('alumno_id', $ids)
             ->where('atendida', false)
@@ -159,11 +163,18 @@
                 </p>
             </div>
             <div class="flex gap-2">
-                <a href="{{ route('tutor.mensajes') }}"
-                   class="flex items-center gap-1.5 px-4 py-2 border border-blue-200 rounded-xl text-blue-700 text-sm font-medium hover:bg-blue-50 transition">
-                    @svg('lucide-message-circle', 'w-4 h-4')
-                    Mensajes
-                </a>
+             <a href="{{ route('tutor.mensajes') }}"
+   class="relative flex items-center gap-1.5 px-4 py-2 border border-blue-200 rounded-xl text-blue-700 text-sm font-medium hover:bg-blue-50 transition">
+    @svg('lucide-message-circle', 'w-4 h-4')
+    Mensajes
+    @if($mensajesNoLeidos > 0)
+        <span class="absolute -top-1.5 -right-1.5 flex items-center justify-center
+                     min-w-[18px] h-[18px] px-1 bg-red-500 text-white
+                     text-xs font-bold rounded-full leading-none">
+            {{ $mensajesNoLeidos > 10 ? '10+' : $mensajesNoLeidos }}
+             </span>
+            @endif
+              </a>
                 <button onclick="descargarReporteGrafico(this)" class="flex items-center gap-1.5 px-4 py-2 bg-blue-600 rounded-xl text-white text-sm font-medium hover:bg-blue-700 transition">
              @svg('lucide-file-text', 'w-4 h-4')
              Exportar reporte
