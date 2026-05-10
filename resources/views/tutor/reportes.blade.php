@@ -3,7 +3,10 @@
         $tutor   = auth()->user()->tutor;
         $alumnos = $tutor->alumnosAsignados->load('usuario', 'carrera');
         $periodos = \App\Models\Periodo::orderByDesc('fecha_inicio')->get();
-        $periodoActual = $periodos->firstWhere('es_actual', '!=', 0);
+
+        // Fix: era firstWhere('es_actual', '!=', 0) — incorrecto y confuso.
+        // El campo es boolean, usar comparación directa con true.
+        $periodoActual = $periodos->firstWhere('es_actual', true);
     @endphp
 
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
