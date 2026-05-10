@@ -8,14 +8,21 @@
 
         <title>{{ config('app.name', 'Sistema de Tutoría') }}</title>
 
-        <!-- Fuentes -->
+        {{-- Fuentes --}}
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
 
-        <!-- Scripts -->
+        {{-- Assets de Vite (Tailwind + JS con Alpine incluido vía Livewire) --}}
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        {{-- Livewire styles: necesario para que componentes como RegistroAlumno funcionen --}}
+        @livewireStyles
     </head>
     <body class="font-sans antialiased">
+
         {{ $slot }}
+
+        {{-- Livewire scripts: también inicializa Alpine.js --}}
+        @livewireScripts
     </body>
 </html>
