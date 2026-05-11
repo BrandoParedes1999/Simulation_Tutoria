@@ -1,14 +1,4 @@
 <x-app-layout>
-    @php
-        $tutor   = auth()->user()->tutor;
-        $alumnos = $tutor->alumnosAsignados->load('usuario', 'carrera');
-        $periodos = \App\Models\Periodo::orderByDesc('fecha_inicio')->get();
-
-        // Fix: era firstWhere('es_actual', '!=', 0) — incorrecto y confuso.
-        // El campo es boolean, usar comparación directa con true.
-        $periodoActual = $periodos->firstWhere('es_actual', true);
-    @endphp
-
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
          x-data="{
             paso: 1,
@@ -101,8 +91,7 @@
                                 ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
                                 : 'border-blue-100 hover:border-blue-300'"
                             class="border-2 rounded-2xl p-5 text-left transition-all">
-                        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center
-                                    justify-center mb-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
                             @svg('lucide-bar-chart-2', 'w-5 h-5 text-blue-600')
                         </div>
                         <p class="font-bold text-blue-900">Individual</p>
@@ -114,8 +103,7 @@
                                 ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
                                 : 'border-blue-100 hover:border-blue-300'"
                             class="border-2 rounded-2xl p-5 text-left transition-all">
-                        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center
-                                    justify-center mb-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
                             @svg('lucide-trending-up', 'w-5 h-5 text-blue-600')
                         </div>
                         <p class="font-bold text-blue-900">Grupal</p>
@@ -127,8 +115,7 @@
                                 ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
                                 : 'border-blue-100 hover:border-blue-300'"
                             class="border-2 rounded-2xl p-5 text-left transition-all">
-                        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center
-                                    justify-center mb-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
                             @svg('lucide-git-compare', 'w-5 h-5 text-blue-600')
                         </div>
                         <p class="font-bold text-blue-900">Comparativo</p>
@@ -148,8 +135,7 @@
                         <label class="text-xs font-semibold text-blue-600 block mb-1.5">Alumno</label>
                         <select x-model="alumnoId"
                                 class="w-full px-4 py-2.5 border border-blue-200 rounded-xl text-sm
-                                       text-blue-700 bg-white focus:outline-none focus:ring-2
-                                       focus:ring-blue-200">
+                                       text-blue-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
                             <option value="">Seleccionar alumno...</option>
                             @foreach($alumnos as $a)
                                 <option value="{{ $a->id }}">
@@ -163,8 +149,7 @@
                         <label class="text-xs font-semibold text-blue-600 block mb-1.5">Periodo</label>
                         <select x-model="periodoId"
                                 class="w-full px-4 py-2.5 border border-blue-200 rounded-xl text-sm
-                                       text-blue-700 bg-white focus:outline-none focus:ring-2
-                                       focus:ring-blue-200">
+                                       text-blue-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
                             @foreach($periodos as $p)
                                 <option value="{{ $p->id }}">
                                     {{ $p->clave }} {{ $p->es_actual ? '(Actual)' : '' }}
@@ -180,8 +165,7 @@
                         <label class="text-xs font-semibold text-blue-600 block mb-1.5">Periodo</label>
                         <select x-model="periodoId"
                                 class="w-full px-4 py-2.5 border border-blue-200 rounded-xl text-sm
-                                       text-blue-700 bg-white focus:outline-none focus:ring-2
-                                       focus:ring-blue-200">
+                                       text-blue-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
                             @foreach($periodos as $p)
                                 <option value="{{ $p->id }}">
                                     {{ $p->clave }} {{ $p->es_actual ? '(Actual)' : '' }}
@@ -193,24 +177,16 @@
                         <p class="text-xs font-semibold text-blue-600 mb-2">Incluir:</p>
                         <div class="space-y-2">
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" x-model="incluirDistribucion"
-                                       class="w-4 h-4 rounded accent-blue-600">
+                                <input type="checkbox" x-model="incluirDistribucion" class="w-4 h-4 rounded accent-blue-600">
                                 <span class="text-sm text-slate-700">Distribución de calificaciones</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" x-model="incluirGraficos"
-                                       class="w-4 h-4 rounded accent-blue-600">
-                                <span class="text-sm text-slate-700">Gráficos de tendencia</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" x-model="incluirAlertas"
-                                       class="w-4 h-4 rounded accent-blue-600">
+                                <input type="checkbox" x-model="incluirAlertas" class="w-4 h-4 rounded accent-blue-600">
                                 <span class="text-sm text-slate-700">Lista de alertas activas</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" x-model="incluirDetalle"
-                                       class="w-4 h-4 rounded accent-blue-600">
-                                <span class="text-sm text-slate-700">Detalle por alumno</span>
+                                <input type="checkbox" x-model="incluirDetalle" class="w-4 h-4 rounded accent-blue-600">
+                                <span class="text-sm text-slate-700">Detalle de inscripciones por alumno</span>
                             </label>
                         </div>
                     </div>
@@ -218,21 +194,12 @@
 
                 {{-- Comparativo --}}
                 <div x-show="tipo === 'comparativo'" class="space-y-4">
-                    <div>
-                        <label class="text-xs font-semibold text-blue-600 block mb-1.5">Comparar</label>
-                        <select class="w-full px-4 py-2.5 border border-blue-200 rounded-xl text-sm
-                                       text-blue-700 bg-white focus:outline-none focus:ring-2
-                                       focus:ring-blue-200">
-                            <option>Semestres</option>
-                        </select>
-                    </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-xs font-semibold text-blue-600 block mb-1.5">Desde</label>
+                            <label class="text-xs font-semibold text-blue-600 block mb-1.5">Periodo desde</label>
                             <select x-model="periodoDesdeId"
                                     class="w-full px-4 py-2.5 border border-blue-200 rounded-xl text-sm
-                                           text-blue-700 bg-white focus:outline-none focus:ring-2
-                                           focus:ring-blue-200">
+                                           text-blue-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
                                 <option value="">Seleccionar...</option>
                                 @foreach($periodos as $p)
                                     <option value="{{ $p->id }}">{{ $p->clave }}</option>
@@ -240,11 +207,10 @@
                             </select>
                         </div>
                         <div>
-                            <label class="text-xs font-semibold text-blue-600 block mb-1.5">Hasta</label>
+                            <label class="text-xs font-semibold text-blue-600 block mb-1.5">Periodo hasta</label>
                             <select x-model="periodoHastaId"
                                     class="w-full px-4 py-2.5 border border-blue-200 rounded-xl text-sm
-                                           text-blue-700 bg-white focus:outline-none focus:ring-2
-                                           focus:ring-blue-200">
+                                           text-blue-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
                                 <option value="">Seleccionar...</option>
                                 @foreach($periodos as $p)
                                     <option value="{{ $p->id }}">{{ $p->clave }}</option>
@@ -260,81 +226,43 @@
                 <h2 class="font-bold text-blue-900 mb-5">Formato de Exportación</h2>
 
                 <div class="space-y-3 mb-6">
-
                     <label @click="formato = 'pdf'"
-                           :class="formato === 'pdf'
-                               ? 'border-blue-400 bg-blue-50'
-                               : 'border-slate-200 hover:border-blue-200'"
+                           :class="formato === 'pdf' ? 'border-blue-400 bg-blue-50' : 'border-slate-200 hover:border-blue-200'"
                            class="flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition">
                         <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
                              :class="formato === 'pdf' ? 'border-blue-600' : 'border-slate-300'">
-                            <div x-show="formato === 'pdf'"
-                                 class="w-2.5 h-2.5 rounded-full bg-blue-600"></div>
+                            <div x-show="formato === 'pdf'" class="w-2.5 h-2.5 rounded-full bg-blue-600"></div>
                         </div>
                         <div>
-                            <p class="text-sm font-semibold text-blue-900">
-                                PDF — Reporte imprimible con gráficos
-                            </p>
-                            <p class="text-xs text-blue-400">Ideal para presentaciones y archivo</p>
+                            <p class="text-sm font-semibold text-blue-900">PDF — Reporte imprimible (HTML)</p>
+                            <p class="text-xs text-blue-400">Se abre en el navegador, usa Ctrl+P para guardar como PDF</p>
                         </div>
                     </label>
 
-                    <label @click="formato = 'excel'"
-                           :class="formato === 'excel'
-                               ? 'border-blue-400 bg-blue-50'
-                               : 'border-slate-200 hover:border-blue-200'"
+                    <label @click="formato = 'csv'"
+                           :class="formato === 'csv' ? 'border-blue-400 bg-blue-50' : 'border-slate-200 hover:border-blue-200'"
                            class="flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition">
                         <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
-                             :class="formato === 'excel' ? 'border-blue-600' : 'border-slate-300'">
-                            <div x-show="formato === 'excel'"
-                                 class="w-2.5 h-2.5 rounded-full bg-blue-600"></div>
+                             :class="formato === 'csv' ? 'border-blue-600' : 'border-slate-300'">
+                            <div x-show="formato === 'csv'" class="w-2.5 h-2.5 rounded-full bg-blue-600"></div>
                         </div>
                         <div>
-                            <p class="text-sm font-semibold text-blue-900">
-                                Excel — Datos tabulares para análisis
-                            </p>
-                            <p class="text-xs text-blue-400">Permite manipulación de datos</p>
+                            <p class="text-sm font-semibold text-blue-900">CSV — Datos para Excel</p>
+                            <p class="text-xs text-blue-400">Descarga directa, compatible con Excel y Google Sheets</p>
                         </div>
                     </label>
-
-                    <label @click="formato = 'word'"
-                           :class="formato === 'word'
-                               ? 'border-blue-400 bg-blue-50'
-                               : 'border-slate-200 hover:border-blue-200'"
-                           class="flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition">
-                        <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
-                             :class="formato === 'word' ? 'border-blue-600' : 'border-slate-300'">
-                            <div x-show="formato === 'word'"
-                                 class="w-2.5 h-2.5 rounded-full bg-blue-600"></div>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-blue-900">
-                                Word — Documento editable
-                            </p>
-                            <p class="text-xs text-blue-400">Ideal para personalizar el reporte</p>
-                        </div>
-                    </label>
-
                 </div>
 
-                {{-- Opciones adicionales --}}
                 <div class="border-t border-blue-50 pt-4">
                     <p class="text-xs font-semibold text-slate-600 mb-2">Opciones adicionales:</p>
                     <div class="space-y-2">
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" x-model="incluirLogo"
-                                   class="w-4 h-4 rounded accent-blue-600">
-                            <span class="text-sm text-slate-700">Incluir logo institucional</span>
+                            <input type="checkbox" x-model="incluirLogo" class="w-4 h-4 rounded accent-blue-600">
+                            <span class="text-sm text-slate-700">Incluir encabezado institucional</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" x-model="incluirFirma"
-                                   class="w-4 h-4 rounded accent-blue-600">
-                            <span class="text-sm text-slate-700">Firma digital del tutor</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" x-model="incluirEmail"
-                                   class="w-4 h-4 rounded accent-blue-600">
-                            <span class="text-sm text-slate-700">Enviar copia por email</span>
+                            <input type="checkbox" x-model="incluirFirma" class="w-4 h-4 rounded accent-blue-600">
+                            <span class="text-sm text-slate-700">Incluir área de firmas</span>
                         </label>
                     </div>
                 </div>
@@ -361,10 +289,7 @@
 
                 <a x-show="paso === 3"
                    :href="generarUrl()"
-                   :class="!puedeAvanzar()
-                       ? 'pointer-events-none opacity-50'
-                       : 'hover:bg-blue-700'"
-                   class="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm
+                   class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm
                           font-medium transition flex items-center gap-2">
                     @svg('lucide-download', 'w-4 h-4')
                     Generar Reporte
