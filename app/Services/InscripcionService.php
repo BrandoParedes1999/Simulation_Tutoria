@@ -63,6 +63,9 @@ class InscripcionService
             );
         }
 
+        // ── Validar límite de créditos por semestre ──────────────────────
+        $this->validarLimiteCreditos($alumno, $periodo, (int) $materias->sum('creditos'));
+
         // Transacción: todas las inscripciones se crean o ninguna
         return DB::transaction(function () use ($alumno, $materias, $periodo) {
             $creadas = collect();
@@ -204,6 +207,13 @@ class InscripcionService
             }
         }
 
+        // ── Validar límite de créditos por semestre ──────────────────────
+        try {
+            $this->validarLimiteCreditos($alumno, $periodo, (int) $materias->sum('creditos'));
+        } catch (InscripcionException $e) {
+            $errores['creditos'] = $e->getMessage();
+        }
+
         return $errores;
     }
 
@@ -267,5 +277,25 @@ class InscripcionService
         }
 
         return $periodo;
+    }
+
+    /**
+     * Valida que el alumno no exceda el límite de créditos por semestre.
+     * Suma los créditos ya inscritos en el periodo + los nuevos que intenta añadir.
+     */
+    private function validarLimiteCreditos(Alumno $alumno, Periodo $periodo, int $creditosNuevos): void
+    {
+        $creditosActuales = (int) DB::table('inscripciones')
+            ->join('materias_malla', 'inscripciones.materia_malla_id', '=', 'materias_malla.id')
+            ->where('inscripciones.alumno_id', $alumno->id)
+            ->where('inscripciones.periodo_id', $periodo->id)
+            ->where('inscripciones.estatus', 'en_curso')
+            ->sum('materias_malla.creditos');
+
+        $total = $creditosActuales + $creditosNuevos;
+
+        if ($total > Alumno::MAX_CREDITOS_POR_SEMESTRE) {
+            throw InscripcionException::excedeCreditos($total, Alumno::MAX_CREDITOS_POR_SEMESTRE);
+        }
     }
 }
