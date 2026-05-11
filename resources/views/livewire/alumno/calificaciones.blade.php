@@ -44,16 +44,23 @@
             <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
             <div class="relative">
                 <p class="text-xs text-blue-200 uppercase tracking-wide mb-1">Promedio del periodo</p>
-                <div class="flex items-baseline gap-2">
-                    <p class="text-4xl font-bold">
-                        {{ $resumen['promedio_periodo'] > 0 ? number_format($resumen['promedio_periodo'], 1) : '—' }}
-                    </p>
-                    @if($resumen['promedio_periodo'] > 0)
-                        <span class="text-sm text-blue-200">/ 100</span>
-                    @endif
-                </div>
 
-                <div class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/20">
+                {{--
+                    PDF #4 — ISO 9241-110 "conformidad con las expectativas":
+                    La línea horizontal "—" era ambigua. Ahora se muestra "N/A"
+                    con una nota que explica por qué no hay dato.
+                --}}
+                @if($resumen['promedio_periodo'] > 0)
+                    <div class="flex items-baseline gap-2">
+                        <p class="text-4xl font-bold">{{ number_format($resumen['promedio_periodo'], 1) }}</p>
+                        <span class="text-sm text-blue-200">/ 100</span>
+                    </div>
+                @else
+                    <p class="text-4xl font-bold text-blue-300">N/A</p>
+                    <p class="text-xs text-blue-300 mt-1 italic">Sin calificaciones registradas este periodo</p>
+                @endif
+
+                <div class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-white/20">
                     <div>
                         <p class="text-xs text-blue-200">Calificadas</p>
                         <p class="text-lg font-bold">{{ $resumen['calificadas'] }}/{{ $resumen['total_materias'] }}</p>
@@ -109,7 +116,6 @@
                 @endphp
 
                 <div class="bg-white border rounded-2xl {{ $estilo['border'] }} overflow-hidden transition-all">
-                    {{-- Cabecera --}}
                     <button
                         @click="expandir({{ $materia['id'] }})"
                         class="w-full p-3 text-left hover:bg-blue-50/30 transition-colors">
@@ -174,7 +180,6 @@
                         </div>
                     </button>
 
-                    {{-- Formulario expandido --}}
                     <div
                         x-show="$wire.abierta === {{ $materia['id'] }}"
                         x-cloak

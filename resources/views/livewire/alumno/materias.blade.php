@@ -1,6 +1,6 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
 
-    {{-- HEADER: Periodo y estado --}}
+    {{-- HEADER --}}
     <div>
         <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -62,9 +62,7 @@
                 @svg('lucide-alert-triangle', 'w-5 h-5 text-red-600 flex-shrink-0 mt-0.5')
                 <div>
                     <p class="font-semibold text-red-900 text-sm">Sin periodo activo</p>
-                    <p class="text-xs text-red-700 mt-0.5">
-                        No hay ningún periodo académico activo. Contacta a control escolar.
-                    </p>
+                    <p class="text-xs text-red-700 mt-0.5">No hay ningún periodo académico activo. Contacta a control escolar.</p>
                 </div>
             </div>
         @endif
@@ -124,7 +122,7 @@
 
         <div class="p-4 sm:p-5">
 
-            {{-- ─── TAB 1: DISPONIBLES ─── --}}
+            {{-- TAB: DISPONIBLES --}}
             @if($tab === 'disponibles')
                 <div class="space-y-4">
 
@@ -138,6 +136,13 @@
                                         <p class="text-sm font-bold text-blue-900">Sugeridas para ti</p>
                                         <p class="text-[11px] text-blue-600">
                                             Semestre {{ $alumno->semestre_actual }}° · {{ $sugeridas->count() }} {{ $sugeridas->count() === 1 ? 'materia' : 'materias' }}
+                                        </p>
+                                        {{--
+                                            PDF #3 — Norman (2002) feedback explicativo:
+                                            El sistema debe comunicar POR QUÉ hace lo que hace.
+                                        --}}
+                                        <p class="text-[10px] text-blue-400 mt-0.5">
+                                            Según tu semestre actual y prerrequisitos cumplidos
                                         </p>
                                     </div>
                                 </div>
@@ -206,7 +211,7 @@
                         @endif
                     </div>
 
-                    {{-- Listado de materias --}}
+                    {{-- Listado --}}
                     @if($disponibles->count() > 0)
                         <div class="space-y-2">
                             @foreach($disponibles as $materia)
@@ -233,14 +238,10 @@
                                                         <p class="text-[10px] font-mono text-blue-500">{{ $materia['clave'] }}</p>
                                                         <span class="text-[10px] text-blue-400">Sem {{ $materia['semestre'] }}</span>
                                                         @if($esReprobada)
-                                                            <span class="px-1.5 py-0.5 bg-red-100 text-red-700 text-[10px] font-semibold rounded-full">
-                                                                Recursar
-                                                            </span>
+                                                            <span class="px-1.5 py-0.5 bg-red-100 text-red-700 text-[10px] font-semibold rounded-full">Recursar</span>
                                                         @endif
                                                     </div>
-                                                    <p class="text-sm font-semibold text-blue-900 leading-tight mt-0.5">
-                                                        {{ $materia['nombre'] }}
-                                                    </p>
+                                                    <p class="text-sm font-semibold text-blue-900 leading-tight mt-0.5">{{ $materia['nombre'] }}</p>
                                                 </div>
                                             </div>
                                             <div class="flex items-center gap-3 text-xs text-blue-500 mt-1">
@@ -281,10 +282,8 @@
                             @svg('lucide-search-x', 'w-12 h-12 text-blue-300 mx-auto mb-2')
                             <p class="text-sm font-medium text-blue-700">No hay materias disponibles</p>
                             <p class="text-xs text-blue-500 mt-1">
-                                @if($busqueda || $filtroSemestre)
-                                    Prueba ajustando los filtros
-                                @else
-                                    ¡Felicidades! Ya cursaste todas las materias que puedes inscribir por ahora.
+                                @if($busqueda || $filtroSemestre) Prueba ajustando los filtros
+                                @else ¡Felicidades! Ya cursaste todas las materias que puedes inscribir por ahora.
                                 @endif
                             </p>
                         </div>
@@ -292,7 +291,7 @@
                 </div>
             @endif
 
-            {{-- ─── TAB 2: CARRITO ─── --}}
+            {{-- TAB: CARRITO --}}
             @if($tab === 'carrito')
                 <div class="space-y-4">
                     @if($materiasEnCarrito->count() > 0)
@@ -352,9 +351,7 @@
                                                 <p class="text-[10px] font-mono text-blue-500">{{ $materia['clave'] }}</p>
                                                 <span class="text-[10px] text-blue-400">Sem {{ $materia['semestre'] }}</span>
                                             </div>
-                                            <p class="text-sm font-semibold text-blue-900 leading-tight mt-0.5">
-                                                {{ $materia['nombre'] }}
-                                            </p>
+                                            <p class="text-sm font-semibold text-blue-900 leading-tight mt-0.5">{{ $materia['nombre'] }}</p>
                                             <div class="flex items-center gap-3 text-xs text-blue-500 mt-1">
                                                 <span>{{ $materia['creditos'] }} cr.</span>
                                                 <span>{{ $materia['total_horas'] }}h</span>
@@ -403,7 +400,7 @@
                 </div>
             @endif
 
-            {{-- ─── TAB 3: INSCRITAS ─── --}}
+            {{-- TAB: INSCRITAS --}}
             @if($tab === 'inscritas')
                 <div class="space-y-3">
                     @if($inscritas->count() > 0)
@@ -427,13 +424,9 @@
                                             <div class="flex items-center gap-2">
                                                 <p class="text-[10px] font-mono text-emerald-600">{{ $item['materia']['clave'] }}</p>
                                                 <span class="text-[10px] text-emerald-500">Sem {{ $item['materia']['semestre'] }}</span>
-                                                <span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-semibold rounded-full">
-                                                    En curso
-                                                </span>
+                                                <span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-semibold rounded-full">En curso</span>
                                             </div>
-                                            <p class="text-sm font-semibold text-emerald-900 leading-tight mt-0.5">
-                                                {{ $item['materia']['nombre'] }}
-                                            </p>
+                                            <p class="text-sm font-semibold text-emerald-900 leading-tight mt-0.5">{{ $item['materia']['nombre'] }}</p>
                                             <div class="flex items-center gap-3 text-xs text-emerald-700 mt-1">
                                                 <span>{{ $item['materia']['creditos'] }} cr.</span>
                                                 <span>{{ $item['materia']['total_horas'] }}h</span>

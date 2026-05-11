@@ -3,7 +3,6 @@
         $tutor = auth()->user()->tutor;
         $alumnos = $tutor->alumnosAsignados->load('usuario', 'carrera');
 
-        // Conteo de alertas por alumno (no atendidas)
         $alertasPorAlumno = \App\Models\Alerta::whereIn('alumno_id', $alumnos->pluck('id'))
             ->where('atendida', false)
             ->selectRaw('alumno_id, count(*) as total')
@@ -13,7 +12,6 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
 
-        {{-- Encabezado --}}
         <div>
             <h1 class="text-lg sm:text-xl font-bold text-blue-900">Alumnos</h1>
             <p class="text-sm text-blue-400 mt-0.5">Lista de alumnos asignados</p>
@@ -103,6 +101,23 @@
                               focus:ring-blue-200 placeholder-blue-200">
             </div>
 
+            {{-- Leyenda de riesgo: PDF #7 - WCAG 1.4.1 --}}
+            <div class="flex flex-wrap gap-3 text-xs text-slate-500">
+                <span class="flex items-center gap-1.5 font-medium">Nivel de riesgo:</span>
+                <span class="flex items-center gap-1">
+                    <span class="text-emerald-600 font-bold">▲</span>
+                    Excelente (≥85)
+                </span>
+                <span class="flex items-center gap-1">
+                    <span class="text-amber-500 font-bold">◆</span>
+                    Regular (70–84)
+                </span>
+                <span class="flex items-center gap-1">
+                    <span class="text-red-500 font-bold">●</span>
+                    En riesgo (&lt;70)
+                </span>
+            </div>
+
             {{-- Tabla --}}
             <div class="bg-white rounded-2xl border border-blue-100 overflow-hidden shadow-sm">
                 <table class="w-full">
@@ -143,19 +158,44 @@
                                 </td>
 
                                 {{--
-                                    FIX #9: Colores en escala 0-100.
-                                    Antes: >= 9 (todos con promedio > 9 aparecían verdes, ej. 75 >= 9 = TRUE).
-                                    Ahora: >= 90 = verde, >= 80 = azul, >= 70 = ámbar, < 70 = rojo.
+                                    PDF #7 — WCAG 2.1 criterios 1.4.1 y 2.4.6:
+                                    Íconos por FORMA + COLOR para identificar nivel de riesgo
+                                    sin depender únicamente del color.
                                 --}}
                                 <td class="px-4 py-3">
-                                    <span class="text-sm font-bold"
-                                          :class="{
-                                              'text-emerald-600': a.promedio >= 90,
-                                              'text-blue-600':    a.promedio >= 80 && a.promedio < 90,
-                                              'text-amber-500':   a.promedio >= 70 && a.promedio < 80,
-                                              'text-red-500':     a.promedio < 70
-                                          }"
-                                          x-text="a.promedio > 0 ? a.promedio.toFixed(1) + ' pts' : '—'"></span>
+                                    <div class="flex items-center gap-1.5">
+                                        {{-- Ícono por forma (accesibilidad) --}}
+                                        <template x-if="a.promedio >= 85">
+                                            <span class="text-emerald-600 font-bold text-sm leading-none"
+                                                  :title="'Rendimiento excelente: ' + a.promedio.toFixed(1)"
+                                                  :aria-label="'Rendimiento excelente: ' + a.promedio.toFixed(1) + ' puntos'">
+                                                ▲
+                                            </span>
+                                        </template>
+                                        <template x-if="a.promedio >= 70 && a.promedio < 85">
+                                            <span class="text-amber-500 font-bold text-sm leading-none"
+                                                  :title="'Rendimiento regular: ' + a.promedio.toFixed(1)"
+                                                  :aria-label="'Rendimiento regular: ' + a.promedio.toFixed(1) + ' puntos'">
+                                                ◆
+                                            </span>
+                                        </template>
+                                        <template x-if="a.promedio > 0 && a.promedio < 70">
+                                            <span class="text-red-500 font-bold text-sm leading-none"
+                                                  :title="'En riesgo académico: ' + a.promedio.toFixed(1)"
+                                                  :aria-label="'En riesgo académico: ' + a.promedio.toFixed(1) + ' puntos'">
+                                                ●
+                                            </span>
+                                        </template>
+                                        <span class="text-sm font-bold"
+                                              :class="{
+                                                  'text-emerald-600': a.promedio >= 90,
+                                                  'text-blue-600':    a.promedio >= 80 && a.promedio < 90,
+                                                  'text-amber-500':   a.promedio >= 70 && a.promedio < 80,
+                                                  'text-red-500':     a.promedio > 0 && a.promedio < 70,
+                                                  'text-slate-300':   a.promedio === 0
+                                              }"
+                                              x-text="a.promedio > 0 ? a.promedio.toFixed(1) + ' pts' : '—'"></span>
+                                    </div>
                                 </td>
 
                                 <td class="px-4 py-3">
@@ -170,12 +210,17 @@
                                     </template>
                                 </td>
 
+                                {{--
+                                    PDF #7 — WCAG 2.4.6: "Ver" sin contexto es inapropiado
+                                    para lectores de pantalla. Ahora usa aria-label descriptivo.
+                                --}}
                                 <td class="px-4 py-3">
                                     <a :href="`/tutor/alumnos/${a.id}`"
+                                       :aria-label="'Ver perfil de ' + a.nombre"
                                        class="px-3 py-1.5 border border-blue-200 rounded-lg
                                               text-blue-600 text-xs font-medium
                                               hover:bg-blue-50 transition">
-                                        Ver
+                                        Ver perfil
                                     </a>
                                 </td>
 
