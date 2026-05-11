@@ -78,14 +78,29 @@
     </div>
 
     {{-- ═══ LEYENDA ═══ --}}
+    {{--
+        PDF #2 — WCAG 2.1 / ISO 9241-125:
+        Cada estado combina SÍMBOLO + COLOR para que sea identificable
+        sin depender únicamente del color (accesibilidad daltonismo/baja visión).
+    --}}
     <div class="bg-white rounded-2xl border border-blue-100 p-3 shadow-sm">
         <p class="text-xs font-medium text-blue-400 uppercase tracking-wide mb-2">Estados</p>
         <div class="flex flex-wrap gap-2">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full"><span class="w-2 h-2 bg-emerald-500 rounded-full"></span>Aprobada</span>
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full"><span class="w-2 h-2 bg-blue-500 rounded-full"></span>En curso</span>
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 text-xs font-medium rounded-full"><span class="w-2 h-2 bg-amber-500 rounded-full"></span>Disponible</span>
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 text-red-700 text-xs font-medium rounded-full"><span class="w-2 h-2 bg-red-500 rounded-full"></span>Reprobada</span>
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full"><span class="w-2 h-2 bg-gray-400 rounded-full"></span>Bloqueada</span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full">
+                <span class="font-bold text-emerald-600">✓</span> Aprobada
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">
+                <span class="font-bold text-blue-600">▶</span> En curso
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 text-xs font-medium rounded-full">
+                <span class="font-bold text-amber-600">○</span> Disponible
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 text-red-700 text-xs font-medium rounded-full">
+                <span class="font-bold text-red-600">✗</span> Reprobada
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                <span class="font-bold text-gray-500">🔒</span> Bloqueada
+            </span>
         </div>
     </div>
 
@@ -187,7 +202,7 @@
         </div>
     </div>
 
-    {{-- ═══ MODAL DE DETALLE (Alpine, instantáneo) ═══ --}}
+    {{-- ═══ MODAL DE DETALLE ═══ --}}
     <div
         x-show="materiaSeleccionada"
         x-cloak

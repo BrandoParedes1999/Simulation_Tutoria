@@ -47,6 +47,34 @@
         </div>
     </div>
 
+    {{-- Banner orientador si hay reprobadas: PDF #5 --}}
+    @if($resumen['reprobadas'] > 0)
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+            @svg('lucide-info', 'w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5')
+            <div class="flex-1">
+                <p class="text-sm font-semibold text-amber-900">
+                    Tienes {{ $resumen['reprobadas'] }} {{ $resumen['reprobadas'] === 1 ? 'materia reprobada' : 'materias reprobadas' }}
+                </p>
+                <p class="text-xs text-amber-700 mt-0.5 leading-relaxed">
+                    Las materias reprobadas que ya cumplen prerrequisitos están disponibles para recursar.
+                    Consulta con tu tutor para planificar tu recuperación académica.
+                </p>
+                <div class="flex flex-wrap gap-2 mt-2">
+                    <a href="{{ route('alumno.materias') }}" wire:navigate
+                       class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 transition">
+                        @svg('lucide-book-open', 'w-3.5 h-3.5')
+                        Ver materias disponibles para recursar
+                    </a>
+                    <a href="{{ route('alumno.mensajes') }}" wire:navigate
+                       class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-amber-400 text-amber-700 text-xs font-semibold rounded-lg hover:bg-amber-100 transition">
+                        @svg('lucide-message-circle', 'w-3.5 h-3.5')
+                        Contactar a mi tutor
+                    </a>
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- FILTRO DE ESTATUS --}}
     <div class="bg-white rounded-2xl border border-blue-100 shadow-sm p-3">
         <div class="flex gap-2 flex-wrap">
@@ -71,7 +99,6 @@
                 ->sum(fn($i) => $i->materiaMalla->creditos ?? 0);
         @endphp
         <div class="bg-white border border-blue-100 rounded-2xl shadow-sm overflow-hidden">
-            {{-- Cabecera del periodo --}}
             <div class="bg-blue-50/60 border-b border-blue-100 px-4 py-3 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     @svg('lucide-calendar', 'w-4 h-4 text-blue-500')
@@ -93,7 +120,6 @@
                 </div>
             </div>
 
-            {{-- Materias del periodo --}}
             <div class="divide-y divide-blue-50">
                 @foreach($inscripciones->sortBy('materiaMalla.semestre') as $insc)
                     @php
@@ -104,12 +130,12 @@
                             default        => ['icon' => 'lucide-circle',          'color' => 'text-blue-400',   'bg' => 'bg-blue-50',    'label' => $insc->estatus],
                         };
                     @endphp
-                    <div class="px-4 py-3 flex items-center gap-3">
-                        <div class="{{ $estilo['bg'] }} p-1.5 rounded-lg flex-shrink-0">
+                    <div class="px-4 py-3 flex items-start gap-3 {{ $insc->estatus === 'reprobada' ? 'bg-red-50/30' : '' }}">
+                        <div class="{{ $estilo['bg'] }} p-1.5 rounded-lg flex-shrink-0 mt-0.5">
                             @svg($estilo['icon'], 'w-4 h-4 ' . $estilo['color'])
                         </div>
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <p class="text-[10px] font-mono text-blue-500">{{ $insc->materiaMalla->clave ?? '—' }}</p>
                                 <span class="text-[10px] text-blue-400">Sem {{ $insc->materiaMalla->semestre ?? '?' }}</span>
                                 <span class="text-[10px] text-blue-400">· {{ $insc->materiaMalla->creditos ?? 0 }} cr.</span>
@@ -117,6 +143,24 @@
                             <p class="text-sm font-medium text-blue-900 truncate">
                                 {{ $insc->materiaMalla->nombre ?? 'Materia eliminada' }}
                             </p>
+
+                            {{--
+                                PDF #5 — Norman (2002) affordance informativa:
+                                Las materias reprobadas muestran orientación contextual
+                                sobre qué puede hacer el alumno a continuación.
+                            --}}
+                            @if($insc->estatus === 'reprobada')
+                                <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-semibold rounded-full">
+                                        @svg('lucide-refresh-cw', 'w-2.5 h-2.5')
+                                        Disponible para recursar
+                                    </span>
+                                    <a href="{{ route('alumno.mensajes') }}" wire:navigate
+                                       class="text-[10px] text-blue-600 hover:underline font-medium">
+                                        ¿Qué sigue? Consulta con tu tutor →
+                                    </a>
+                                </div>
+                            @endif
                         </div>
                         <div class="text-right flex-shrink-0">
                             @if($insc->promedio !== null)

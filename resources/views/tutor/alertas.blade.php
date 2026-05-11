@@ -4,19 +4,16 @@
         $alumnos = $tutor->alumnosAsignados;
         $ids     = $alumnos->pluck('id');
 
-        // Todas las alertas de los alumnos del tutor
         $todasAlertas = \App\Models\Alerta::whereIn('alumno_id', $ids)
             ->with('alumno.usuario:id,name')
             ->orderByRaw("FIELD(prioridad, 'critica', 'media', 'baja')")
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // FIX #15: Enum solo tiene ['critica','media','baja'] — eliminar 'alta'
         $criticas = $todasAlertas->where('atendida', false)->where('prioridad', 'critica')->count();
         $medias   = $todasAlertas->where('atendida', false)->where('prioridad', 'media')->count();
         $bajas    = $todasAlertas->where('atendida', false)->where('prioridad', 'baja')->count();
 
-        // Reglas del tutor
         $reglas = $tutor->reglasAlerta;
 
         $urlDetalle = url('tutor/alumnos');
@@ -24,7 +21,6 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
 
-        {{-- Encabezado --}}
         <div>
             <h1 class="text-lg sm:text-xl font-bold text-blue-900">Centro de Alertas</h1>
             <p class="text-sm text-blue-400 mt-0.5">Monitoreo de alumnos en riesgo</p>
@@ -35,7 +31,6 @@
             estado: '',
             periodo: '',
 
-            // FIX #15: Solo prioridades válidas del enum: critica, media, baja
             alertas: {{ $todasAlertas->map(fn($a) => [
                 'id'        => $a->id,
                 'nombre'    => $a->alumno->usuario->name ?? 'Alumno',
@@ -66,7 +61,6 @@
                 });
             },
 
-            // FIX #15: Solo 'critica' (no 'alta')
             get criticas()  { return this.filtradas.filter(a => a.prioridad === 'critica' && !a.atendida); },
             get medias()    { return this.filtradas.filter(a => a.prioridad === 'media'   && !a.atendida); },
             get bajas()     { return this.filtradas.filter(a => a.prioridad === 'baja'    && !a.atendida); },
@@ -76,7 +70,6 @@
             urlAtender: '{{ url('tutor/alertas') }}',
             csrfToken:  '{{ csrf_token() }}',
 
-            // FIX: persistir en BD además de actualizar Alpine
             marcarAtendida(alerta) {
                 fetch(this.urlAtender + '/' + alerta.id + '/atender', {
                     method: 'POST',
@@ -98,7 +91,7 @@
             }
         }">
 
-            {{-- Selectores de filtro --}}
+            {{-- Filtros --}}
             <div class="flex flex-wrap gap-3">
                 <select x-model="prioridad"
                         class="px-3 py-2 border border-blue-200 rounded-xl text-sm text-blue-700
@@ -165,6 +158,7 @@
                             </div>
                             <div class="flex items-center gap-2 flex-shrink-0">
                                 <a :href="urlBase + '/' + a.alumno_id"
+                                   :aria-label="'Ver detalle de ' + a.nombre"
                                    class="text-xs text-blue-600 font-medium hover:underline">Ver detalle</a>
                                 <span class="text-slate-200">|</span>
                                 <button @click="marcarAtendida(a)"
@@ -198,6 +192,7 @@
                             </div>
                             <div class="flex items-center gap-2 flex-shrink-0">
                                 <a :href="urlBase + '/' + a.alumno_id"
+                                   :aria-label="'Ver detalle de ' + a.nombre"
                                    class="text-xs text-blue-600 font-medium hover:underline">Ver detalle</a>
                                 <button @click="marcarAtendida(a)"
                                         class="px-3 py-1.5 border border-blue-200 rounded-lg text-blue-600
@@ -230,6 +225,7 @@
                             </div>
                             <div class="flex items-center gap-2 flex-shrink-0">
                                 <a :href="urlBase + '/' + a.alumno_id"
+                                   :aria-label="'Ver detalle de ' + a.nombre"
                                    class="text-xs text-blue-600 font-medium hover:underline">Ver detalle</a>
                                 <button @click="marcarAtendida(a)"
                                         class="px-3 py-1.5 border border-blue-200 rounded-lg text-blue-600
@@ -242,7 +238,7 @@
                 </div>
             </template>
 
-            {{-- Sin alertas pendientes --}}
+            {{-- Sin alertas --}}
             <template x-if="criticas.length === 0 && medias.length === 0 && bajas.length === 0">
                 <div class="bg-white rounded-2xl border border-blue-100 p-8 text-center shadow-sm">
                     @svg('lucide-check-circle-2', 'w-10 h-10 text-emerald-300 mx-auto mb-2')
@@ -251,7 +247,7 @@
                 </div>
             </template>
 
-            {{-- Historial completo --}}
+            {{-- Historial --}}
             <div class="bg-white rounded-2xl border border-blue-100 overflow-hidden shadow-sm">
                 <div class="p-4 border-b border-blue-100">
                     <h3 class="font-bold text-blue-900">Historial de Alertas</h3>
@@ -272,7 +268,6 @@
                         <tbody>
                             <template x-for="a in filtradas" :key="'hist-' + a.id">
                                 <tr class="border-b border-blue-50 hover:bg-blue-50/30 transition-colors">
-
                                     <td class="px-4 py-3">
                                         <div class="flex items-center gap-2">
                                             <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -282,13 +277,10 @@
                                             <span class="text-sm text-blue-900 font-medium" x-text="a.nombre"></span>
                                         </div>
                                     </td>
-
                                     <td class="px-4 py-3">
                                         <p class="text-sm text-slate-700" x-text="a.titulo"></p>
                                         <p class="text-xs text-slate-400 capitalize" x-text="a.categoria.replace(/_/g,' ')"></p>
                                     </td>
-
-                                    {{-- FIX #15: Solo critica/media/baja --}}
                                     <td class="px-4 py-3">
                                         <span class="px-2 py-0.5 rounded-full text-xs font-medium capitalize"
                                               :class="{
@@ -299,11 +291,9 @@
                                               x-text="a.prioridad">
                                         </span>
                                     </td>
-
                                     <td class="px-4 py-3">
                                         <span class="text-xs text-slate-500" x-text="a.fecha"></span>
                                     </td>
-
                                     <td class="px-4 py-3">
                                         <template x-if="a.atendida">
                                             <span class="flex items-center gap-1 text-xs text-emerald-600 font-medium">
@@ -318,16 +308,15 @@
                                             </span>
                                         </template>
                                     </td>
-
                                     <td class="px-4 py-3">
                                         <a :href="urlBase + '/' + a.alumno_id"
+                                           :aria-label="'Ver detalle de ' + a.nombre"
                                            class="text-xs text-blue-600 font-medium hover:underline">
                                             Ver detalle
                                         </a>
                                     </td>
                                 </tr>
                             </template>
-
                             <tr x-show="filtradas.length === 0">
                                 <td colspan="6" class="text-center py-8 text-sm text-slate-400">
                                     Sin alertas con los filtros seleccionados
@@ -343,33 +332,133 @@
                 </div>
             </div>
 
-            {{-- Configurar Reglas --}}
-            <div class="bg-white rounded-2xl border border-blue-100 p-5 shadow-sm">
-                <h3 class="font-bold text-blue-900 mb-4">Configurar Reglas de Alerta</h3>
-                <div class="space-y-3">
-                    @forelse($reglas as $regla)
-                        <div class="flex items-start gap-3 p-3 bg-blue-50/40 rounded-xl">
-                            <label class="flex items-center gap-2 cursor-pointer flex-1">
-                                <input type="checkbox"
-                                       {{ $regla->activa ? 'checked' : '' }}
-                                       class="w-4 h-4 rounded accent-blue-600">
-                                <div>
-                                    <p class="text-sm text-slate-700">{{ $regla->descripcion }}</p>
-                                    <p class="text-xs text-blue-500 mt-0.5">
-                                        Umbral: <strong>{{ $regla->umbral }} pts</strong>
-                                        · Prioridad: <strong class="capitalize">{{ $regla->prioridad_alerta }}</strong>
-                                    </p>
-                                </div>
-                            </label>
-                        </div>
-                    @empty
-                        <p class="text-sm text-slate-400">Sin reglas configuradas</p>
-                    @endforelse
+            {{-- ════════════════════════════════════════════════════
+                 CONFIGURAR REGLAS — PDF #6: ISO 9241-210
+                 Sección separada del flujo de gestión de alertas.
+                 Umbrales editables + toast de confirmación.
+                 ════════════════════════════════════════════════════ --}}
+            <div class="bg-white rounded-2xl border border-blue-100 p-5 shadow-sm"
+                 x-data="{
+                     reglas: {{ $reglas->map(fn($r) => [
+                         'id'     => $r->id,
+                         'activa' => (bool)$r->activa,
+                         'umbral' => $r->umbral,
+                         'label'  => $r->descripcion,
+                         'prio'   => $r->prioridad_alerta,
+                     ])->values()->toJson() }},
+                     guardando: false,
+                     guardado:  false,
+                     errorMsg:  '',
+                     csrfToken: '{{ csrf_token() }}',
+
+                     async guardar() {
+                         this.guardando = true;
+                         this.guardado  = false;
+                         this.errorMsg  = '';
+                         try {
+                             const res = await fetch('{{ route('tutor.alertas.guardar-reglas') }}', {
+                                 method:  'POST',
+                                 headers: {
+                                     'X-CSRF-TOKEN': this.csrfToken,
+                                     'Content-Type': 'application/json',
+                                 },
+                                 body: JSON.stringify({ reglas: this.reglas }),
+                             });
+                             const data = await res.json();
+                             if (data.ok) {
+                                 this.guardado = true;
+                                 setTimeout(() => { this.guardado = false; }, 3500);
+                             } else {
+                                 this.errorMsg = 'No se pudo guardar.';
+                             }
+                         } catch (e) {
+                             this.errorMsg = 'Error de conexión.';
+                         } finally {
+                             this.guardando = false;
+                         }
+                     }
+                 }">
+
+                <div class="flex items-start justify-between mb-4">
+                    <div>
+                        <h3 class="font-bold text-blue-900">Configurar Reglas de Alerta</h3>
+                        <p class="text-xs text-blue-400 mt-0.5">
+                            Personaliza los umbrales según los criterios de tu grupo académico
+                        </p>
+                    </div>
+                    @svg('lucide-sliders-horizontal', 'w-4 h-4 text-blue-400 flex-shrink-0 mt-1')
                 </div>
-                <button class="mt-4 px-5 py-2 bg-blue-600 text-white text-sm font-medium
-                               rounded-xl hover:bg-blue-700 transition">
-                    Guardar Configuración
-                </button>
+
+                <div class="space-y-3">
+                    <template x-for="(regla, idx) in reglas" :key="regla.id">
+                        <div class="flex items-center gap-3 p-3 bg-blue-50/40 rounded-xl">
+                            <input type="checkbox"
+                                   x-model="reglas[idx].activa"
+                                   class="w-4 h-4 rounded accent-blue-600 flex-shrink-0"
+                                   :aria-label="'Activar: ' + regla.label">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-slate-700" x-text="regla.label"></p>
+                                <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                                    <span class="text-xs text-blue-500">Umbral:</span>
+                                    {{-- PDF #6: Campo numérico editable para el umbral --}}
+                                    <input type="number"
+                                           x-model.number="reglas[idx].umbral"
+                                           min="0" max="100" step="0.5"
+                                           :disabled="!reglas[idx].activa"
+                                           :class="reglas[idx].activa
+                                               ? 'border-blue-300 text-blue-800 bg-white'
+                                               : 'border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed'"
+                                           class="w-20 px-2 py-1 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400 transition"
+                                           :aria-label="'Umbral para ' + regla.label">
+                                    <span class="text-xs text-blue-500">pts</span>
+                                    <span class="ml-1 px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize"
+                                          :class="{
+                                              'bg-red-100 text-red-600':    regla.prio === 'critica',
+                                              'bg-amber-100 text-amber-600': regla.prio === 'media',
+                                              'bg-blue-100 text-blue-600':  regla.prio === 'baja',
+                                          }"
+                                          x-text="'Prioridad: ' + regla.prio"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    @if($reglas->isEmpty())
+                        <p class="text-sm text-slate-400">Sin reglas configuradas</p>
+                    @endif
+                </div>
+
+                <div class="flex items-center gap-3 mt-5 pt-4 border-t border-blue-50">
+                    <button @click="guardar()"
+                            :disabled="guardando"
+                            class="px-5 py-2 bg-blue-600 text-white text-sm font-medium
+                                   rounded-xl hover:bg-blue-700 disabled:opacity-50 transition
+                                   flex items-center gap-2">
+                        <span x-show="!guardando" class="flex items-center gap-2">
+                            @svg('lucide-save', 'w-4 h-4')
+                            Guardar Configuración
+                        </span>
+                        <span x-show="guardando" class="flex items-center gap-2">
+                            @svg('lucide-loader-2', 'w-4 h-4 animate-spin')
+                            Guardando...
+                        </span>
+                    </button>
+
+                    {{-- Toast de confirmación: Nielsen H1 --}}
+                    <span x-show="guardado" x-cloak
+                          x-transition:enter="transition ease-out duration-200"
+                          x-transition:enter-start="opacity-0 translate-y-1"
+                          x-transition:enter-end="opacity-100 translate-y-0"
+                          x-transition:leave="transition ease-in duration-150"
+                          x-transition:leave-start="opacity-100"
+                          x-transition:leave-end="opacity-0"
+                          class="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
+                        @svg('lucide-check-circle-2', 'w-4 h-4')
+                        Configuración guardada
+                    </span>
+
+                    <span x-show="errorMsg" class="text-sm text-red-600 font-medium" x-text="errorMsg"></span>
+                </div>
             </div>
 
         </div>
