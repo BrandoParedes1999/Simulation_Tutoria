@@ -11,21 +11,25 @@ use Illuminate\Support\Facades\Hash;
 class UsuariosInicialesSeeder extends Seeder {
     public function run(): void {
         // ═══ TUTOR ═══
-        $tutorUser = User::create([
-            'name' => 'Tutor Principal',
-            'email' => 'tutor@tutoria.edu',
-            'password' => Hash::make('190038'),
-            'rol' => 'tutor',
-            'activo' => true,
-        ]);
+        $tutorUser = User::firstOrCreate(
+            ['email' => 'tutor@tutoria.edu'],
+            [
+                'name'     => 'Tutor Principal',
+                'password' => Hash::make('190038'),
+                'rol'      => 'tutor',
+                'activo'   => true,
+            ]
+        );
 
-        $tutor = Tutor::create([
-            'usuario_id' => $tutorUser->id,
-            'numero_empleado' => '190038',
-            'departamento' => 'Facultad de Ciencias de la Información',
-            'cubiculo' => null,
-            'grado_academico' => null,
-        ]);
+        $tutor = Tutor::firstOrCreate(
+            ['usuario_id' => $tutorUser->id],
+            [
+                'numero_empleado' => '190038',
+                'departamento'    => 'Facultad de Ciencias de la Información',
+                'cubiculo'        => null,
+                'grado_academico' => null,
+            ]
+        );
 
         // Crear reglas de alerta por defecto para el tutor
         $reglasDefault = [
@@ -50,30 +54,34 @@ class UsuariosInicialesSeeder extends Seeder {
         ];
 
         foreach ($reglasDefault as $regla) {
-            ReglaAlerta::create(array_merge(
-                ['tutor_id' => $tutor->id, 'activa' => true],
-                $regla
-            ));
+            ReglaAlerta::firstOrCreate(
+                ['tutor_id' => $tutor->id, 'clave_regla' => $regla['clave_regla']],
+                array_merge(['activa' => true], $regla)
+            );
         }
 
         // ═══ ALUMNO ═══
-        $alumnoUser = User::create([
-            'name' => 'Alumno Principal',
-            'email' => 'alumno@tutoria.edu',
-            'password' => Hash::make('190039'),
-            'rol' => 'alumno',
-            'activo' => true,
-        ]);
+        $alumnoUser = User::firstOrCreate(
+            ['email' => 'alumno@tutoria.edu'],
+            [
+                'name'     => 'Alumno Principal',
+                'password' => Hash::make('190039'),
+                'rol'      => 'alumno',
+                'activo'   => true,
+            ]
+        );
 
-        Alumno::create([
-            'usuario_id' => $alumnoUser->id,
-            'matricula' => '190039',
-            'carrera_id' => 1,
-            'semestre_actual' => 1,
-            'fecha_ingreso' => now(),
-            'tutor_id' => $tutor->id,
-            'estatus' => 'activo',
-        ]);
+        Alumno::firstOrCreate(
+            ['matricula' => '190039'],
+            [
+                'usuario_id'      => $alumnoUser->id,
+                'carrera_id'      => 1,
+                'semestre_actual' => 1,
+                'fecha_ingreso'   => now(),
+                'tutor_id'        => $tutor->id,
+                'estatus'         => 'activo',
+            ]
+        );
 
         $this->command->info('✓ Usuario tutor creado (matrícula/empleado: 190038)');
         $this->command->info('✓ Usuario alumno creado (matrícula: 190039)');

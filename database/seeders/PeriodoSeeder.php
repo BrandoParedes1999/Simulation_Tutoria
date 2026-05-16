@@ -10,8 +10,7 @@ class PeriodoSeeder extends Seeder {
         $year = now()->year;
         $semestre = now()->month <= 6 ? 1 : 2;
 
-        Periodo::create([
-            'clave' => "$year-$semestre",
+        Periodo::firstOrCreate(['clave' => "$year-$semestre"], [
             'nombre' => $semestre === 1 ? "Primavera $year" : "Otoño $year",
             'fecha_inicio' => $semestre === 1
                 ? Carbon::create($year, 1, 15)
