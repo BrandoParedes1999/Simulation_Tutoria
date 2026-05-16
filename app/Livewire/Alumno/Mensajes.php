@@ -15,6 +15,13 @@ class Mensajes extends Component
     public string $textoRespuesta = '';
     public string $pestana = 'recibidos';
 
+    public function mount(): void
+    {
+        if ($id = request()->query('conversacion')) {
+            $this->seleccionar((int) $id);
+        }
+    }
+
     public function seleccionar(int $mensajeId): void
     {
         $this->conversacionActivaId = $mensajeId;

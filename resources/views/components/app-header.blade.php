@@ -104,25 +104,28 @@
                         <div class="max-h-72 overflow-y-auto divide-y divide-blue-50">
                             @forelse($notifs as $notif)
                                 @php
-                                    $data     = $notif->data;
+                                    $data      = $notif->data;
                                     $isMensaje = ($data['tipo'] ?? '') === 'mensaje_recibido';
                                 @endphp
-                                <div class="px-4 py-3 hover:bg-blue-50/50 transition-colors">
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-8 h-8 {{ $isMensaje ? 'bg-indigo-100' : 'bg-blue-100' }} rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                            @if($isMensaje)
-                                                @svg('lucide-mail', 'w-4 h-4 text-indigo-600')
-                                            @else
-                                                @svg('lucide-user-check', 'w-4 h-4 text-blue-600')
-                                            @endif
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-xs font-semibold text-blue-900">{{ $data['titulo'] ?? 'Notificación' }}</p>
-                                            <p class="text-xs text-blue-600 mt-0.5 truncate">{{ $data['mensaje'] ?? '' }}</p>
-                                            <p class="text-[10px] text-blue-300 mt-1">{{ $notif->created_at->locale('es')->diffForHumans() }}</p>
-                                        </div>
+                                {{-- Enlace real: marca como leída y redirige al mensaje --}}
+                                <a href="{{ route('notificaciones.abrir', $notif->id) }}"
+                                   class="flex items-start gap-3 px-4 py-3 hover:bg-blue-50 transition-colors group">
+                                    <div class="w-8 h-8 {{ $isMensaje ? 'bg-indigo-100' : 'bg-blue-100' }} rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        @if($isMensaje)
+                                            @svg('lucide-mail', 'w-4 h-4 text-indigo-600')
+                                        @else
+                                            @svg('lucide-user-check', 'w-4 h-4 text-blue-600')
+                                        @endif
                                     </div>
-                                </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-semibold text-blue-900 group-hover:text-blue-700">
+                                            {{ $data['titulo'] ?? 'Notificación' }}
+                                        </p>
+                                        <p class="text-xs text-blue-600 mt-0.5 line-clamp-2">{{ $data['mensaje'] ?? '' }}</p>
+                                        <p class="text-[10px] text-blue-300 mt-1">{{ $notif->created_at->locale('es')->diffForHumans() }}</p>
+                                    </div>
+                                    @svg('lucide-chevron-right', 'w-3.5 h-3.5 text-blue-300 flex-shrink-0 self-center opacity-0 group-hover:opacity-100 transition-opacity')
+                                </a>
                             @empty
                                 <div class="px-4 py-8 text-center">
                                     @svg('lucide-bell-off', 'w-8 h-8 text-blue-200 mx-auto mb-2')

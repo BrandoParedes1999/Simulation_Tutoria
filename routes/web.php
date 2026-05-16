@@ -68,8 +68,10 @@ Route::middleware(['auth', 'rol:admin'])->prefix('admin')->name('admin.')->group
 });
 
 // ── NOTIFICACIONES (cualquier usuario autenticado) ───────────────────────────
-Route::middleware('auth')->post('/notificaciones/leer', [NotificacionController::class, 'marcarLeidas'])
-    ->name('notificaciones.leer');
+Route::middleware('auth')->group(function () {
+    Route::post('/notificaciones/leer',          [NotificacionController::class, 'marcarLeidas']) ->name('notificaciones.leer');
+    Route::get('/notificaciones/{notif}/abrir',  [NotificacionController::class, 'abrirYLeer'])   ->name('notificaciones.abrir');
+});
 
 // ── PERFIL ──────────────────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {

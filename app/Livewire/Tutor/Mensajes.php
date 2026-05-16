@@ -17,6 +17,13 @@ class Mensajes extends Component
     public string $textoRespuesta = '';
     public string $pestana = 'todo';
 
+    public function mount(): void
+    {
+        if ($id = request()->query('conversacion')) {
+            $this->seleccionar((int) $id);
+        }
+    }
+
     // Modal nueva notificación
     public bool   $modalAbierto          = false;
     public string $tipoDestinatario      = 'alumno';

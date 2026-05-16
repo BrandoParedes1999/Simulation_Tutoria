@@ -38,12 +38,15 @@ class MensajeRecibido extends Notification
         $esRespuesta = $this->mensaje->mensaje_padre_id !== null;
         $accion      = $esRespuesta ? 'respondió tu mensaje' : 'te envió un mensaje';
 
+        // Guardar el ID de la conversación raíz para poder redirigir directo
+        $conversacionId = $this->mensaje->mensaje_padre_id ?? $this->mensaje->id;
+
         return [
             'tipo'             => 'mensaje_recibido',
             'titulo'           => "{$this->remitenteNombre} {$accion}",
             'mensaje'          => \Str::limit($this->mensaje->contenido, 120),
             'asunto'           => $this->mensaje->asunto,
-            'mensaje_id'       => $this->mensaje->id,
+            'conversacion_id'  => $conversacionId,
             'remitente_nombre' => $this->remitenteNombre,
         ];
     }
