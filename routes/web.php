@@ -6,6 +6,8 @@ use App\Http\Controllers\Tutor\MensajeController  as TutorMensajeController;
 use App\Http\Controllers\Tutor\AlertaController   as TutorAlertaController;
 use App\Http\Controllers\Tutor\ReporteController  as TutorReporteController;
 use App\Http\Controllers\Alumno\MensajeController as AlumnoMensajeController;
+use App\Http\Controllers\Alumno\NotificacionController;
+use App\Livewire\Tutor\GestionAlumnos as TutorGestionAlumnos;
 
 Route::get('/', function () {
     if (auth()->check()) return redirect()->route('dashboard');
@@ -35,12 +37,13 @@ Route::middleware(['auth', 'rol:alumno'])->prefix('alumno')->name('alumno.')->gr
 
     Route::post('/mensajes/{mensaje}/responder', [AlumnoMensajeController::class, 'responder'])->name('mensajes.responder');
     Route::post('/mensajes/{mensaje}/leer',      [AlumnoMensajeController::class, 'leer'])     ->name('mensajes.leer');
+    Route::post('/notificaciones/leer', [NotificacionController::class, 'marcarLeidas'])->name('notificaciones.leer');
 });
 
 // ── TUTOR ───────────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'rol:tutor'])->prefix('tutor')->name('tutor.')->group(function () {
     Route::view('/dashboard', 'tutor.dashboard')->name('dashboard');
-    Route::view('/alumnos',   'tutor.alumnos')  ->name('alumnos');
+    Route::get('/alumnos', TutorGestionAlumnos::class)->name('alumnos');
     Route::view('/alertas',   'tutor.alertas')  ->name('alertas');
     Route::view('/mensajes',  'tutor.mensajes')  ->name('mensajes');
 
