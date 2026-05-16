@@ -20,6 +20,8 @@
             <div class="flex border-b border-blue-50 p-2 gap-1">
                 <button
                     wire:click="$set('pestana', 'recibidos')"
+                    wire:loading.attr="disabled"
+                    wire:target="pestana"
                     class="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-xl transition-colors
                         {{ $pestana === 'recibidos' ? 'bg-blue-700 text-white' : 'text-blue-500 hover:bg-blue-50' }}">
                     Recibidos
@@ -31,12 +33,16 @@
                 </button>
                 <button
                     wire:click="$set('pestana', 'enviados')"
+                    wire:loading.attr="disabled"
+                    wire:target="pestana"
                     class="flex-1 px-2 py-1.5 text-xs font-medium rounded-xl transition-colors
                         {{ $pestana === 'enviados' ? 'bg-blue-700 text-white' : 'text-blue-500 hover:bg-blue-50' }}">
                     Enviados
                 </button>
                 <button
                     wire:click="$set('pestana', 'urgentes')"
+                    wire:loading.attr="disabled"
+                    wire:target="pestana"
                     class="flex-1 px-2 py-1.5 text-xs font-medium rounded-xl transition-colors
                         {{ $pestana === 'urgentes' ? 'bg-red-600 text-white' : 'text-blue-500 hover:bg-blue-50' }}">
                     Urgentes
@@ -44,7 +50,7 @@
             </div>
 
             {{-- Lista --}}
-            <div class="flex-1 overflow-y-auto divide-y divide-blue-50">
+            <div class="flex-1 overflow-y-auto divide-y divide-blue-50" wire:loading.class="opacity-60" wire:target="pestana,seleccionar">
                 @forelse($conversaciones as $conv)
                     @php
                         $esMio     = $conv->remitente_id === $userId;

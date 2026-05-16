@@ -6,6 +6,7 @@ use App\Exceptions\InscripcionException;
 use App\Models\Inscripcion;
 use App\Models\Periodo;
 use App\Services\InscripcionService;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -74,8 +75,9 @@ class Materias extends Component
             return;
         }
         try {
-            $alumno       = auth()->user()->alumno;
+            $alumno        = auth()->user()->alumno;
             $inscripciones = app(InscripcionService::class)->inscribir($alumno, $this->carrito);
+            $this->invalidarCache($alumno->id);
             $this->carrito = [];
             $this->tab     = 'inscritas';
             $count         = $inscripciones->count();
@@ -90,12 +92,20 @@ class Materias extends Component
     public function darDeBaja(int $inscripcionId): void
     {
         try {
+            $alumno      = auth()->user()->alumno;
             $inscripcion = Inscripcion::findOrFail($inscripcionId);
-            app(InscripcionService::class)->darDeBaja($inscripcion, auth()->user()->alumno);
+            app(InscripcionService::class)->darDeBaja($inscripcion, $alumno);
+            $this->invalidarCache($alumno->id);
             $this->dispatch('toast', tipo: 'success', mensaje: 'Materia dada de baja');
         } catch (InscripcionException $e) {
             $this->dispatch('toast', tipo: 'error', mensaje: $e->getMessage());
         }
+    }
+
+    private function invalidarCache(int $alumnoId): void
+    {
+        Cache::forget("mats_disp_{$alumnoId}");
+        Cache::forget("mats_ins_{$alumnoId}");
     }
 
     public function limpiarFiltros(): void
@@ -128,11 +138,17 @@ class Materias extends Component
         }
 
         $servicio = app(InscripcionService::class);
-        $periodo  = Periodo::where('es_actual', true)->first();
+        $periodo  = Cache::remember('periodo_actual', 60, fn() =>
+            Periodo::where('es_actual', true)->first()
+        );
 
-        // ── Materias disponibles (protegido) ──────────────────────────
+        // ── Materias disponibles (cacheado 60s para respuesta rápida en cambio de pestaña) ──
         try {
-            $todasDisponibles = $servicio->obtenerMateriasDisponibles($alumno);
+            $todasDisponibles = Cache::remember(
+                "mats_disp_{$alumno->id}",
+                60,
+                fn() => $servicio->obtenerMateriasDisponibles($alumno)
+            );
         } catch (\Throwable) {
             $todasDisponibles = collect();
         }
@@ -171,9 +187,15 @@ class Materias extends Component
             $erroresCarrito = [];
         }
 
-        // ── Inscritas ─────────────────────────────────────────────────
+        // ── Inscritas (cacheado 60s) ──────────────────────────────────
         try {
-            $inscritas = $servicio->obtenerMateriasInscritas($alumno, $periodo);
+            $inscritas = $periodo
+                ? Cache::remember(
+                    "mats_ins_{$alumno->id}",
+                    60,
+                    fn() => $servicio->obtenerMateriasInscritas($alumno, $periodo)
+                )
+                : collect();
         } catch (\Throwable) {
             $inscritas = collect();
         }

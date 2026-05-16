@@ -7,6 +7,7 @@ use App\Models\Alumno;
 use App\Models\Inscripcion;
 use App\Models\Periodo;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class CalificacionService
@@ -76,7 +77,9 @@ class CalificacionService
             return collect($this->cacheMaterias);
         }
 
-        $periodo = Periodo::where('es_actual', true)->first();
+        $periodo = Cache::remember('periodo_actual', 60, fn() =>
+            Periodo::where('es_actual', true)->first()
+        );
         if (!$periodo) {
             $this->cacheMaterias = [];
             $this->cacheAlumnoId = $alumno->id;

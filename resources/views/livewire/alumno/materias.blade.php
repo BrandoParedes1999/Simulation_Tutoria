@@ -73,9 +73,12 @@
         <div class="flex border-b border-blue-100">
             <button
                 wire:click="cambiarTab('disponibles')"
+                wire:loading.attr="disabled"
+                wire:target="cambiarTab"
                 class="flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors relative
                     {{ $tab === 'disponibles' ? 'text-blue-700 bg-blue-50/50' : 'text-blue-400 hover:text-blue-600 hover:bg-blue-50/30' }}">
-                @svg('lucide-plus-circle', 'w-4 h-4')
+                <span wire:loading.remove wire:target="cambiarTab('disponibles')">@svg('lucide-plus-circle', 'w-4 h-4')</span>
+                <span wire:loading wire:target="cambiarTab('disponibles')">@svg('lucide-loader-2', 'w-4 h-4 animate-spin')</span>
                 <span class="hidden sm:inline">Disponibles</span>
                 <span class="sm:hidden">Dispo.</span>
                 <span class="inline-flex items-center justify-center px-1.5 min-w-[20px] h-5 text-[10px] font-bold rounded-full
@@ -89,9 +92,12 @@
 
             <button
                 wire:click="cambiarTab('carrito')"
+                wire:loading.attr="disabled"
+                wire:target="cambiarTab"
                 class="flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors relative
                     {{ $tab === 'carrito' ? 'text-blue-700 bg-blue-50/50' : 'text-blue-400 hover:text-blue-600 hover:bg-blue-50/30' }}">
-                @svg('lucide-shopping-cart', 'w-4 h-4')
+                <span wire:loading.remove wire:target="cambiarTab('carrito')">@svg('lucide-shopping-cart', 'w-4 h-4')</span>
+                <span wire:loading wire:target="cambiarTab('carrito')">@svg('lucide-loader-2', 'w-4 h-4 animate-spin')</span>
                 <span>Carrito</span>
                 @if(count($carrito) > 0)
                     <span class="inline-flex items-center justify-center px-1.5 min-w-[20px] h-5 text-[10px] font-bold rounded-full
@@ -106,9 +112,12 @@
 
             <button
                 wire:click="cambiarTab('inscritas')"
+                wire:loading.attr="disabled"
+                wire:target="cambiarTab"
                 class="flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors relative
                     {{ $tab === 'inscritas' ? 'text-blue-700 bg-blue-50/50' : 'text-blue-400 hover:text-blue-600 hover:bg-blue-50/30' }}">
-                @svg('lucide-check-circle-2', 'w-4 h-4')
+                <span wire:loading.remove wire:target="cambiarTab('inscritas')">@svg('lucide-check-circle-2', 'w-4 h-4')</span>
+                <span wire:loading wire:target="cambiarTab('inscritas')">@svg('lucide-loader-2', 'w-4 h-4 animate-spin')</span>
                 <span>Inscritas</span>
                 <span class="inline-flex items-center justify-center px-1.5 min-w-[20px] h-5 text-[10px] font-bold rounded-full
                     {{ $tab === 'inscritas' ? 'bg-emerald-500 text-white' : 'bg-emerald-100 text-emerald-700' }}">
@@ -120,7 +129,7 @@
             </button>
         </div>
 
-        <div class="p-4 sm:p-5">
+        <div class="p-4 sm:p-5" wire:loading.class="opacity-60" wire:target="cambiarTab">
 
             {{-- TAB: DISPONIBLES --}}
             @if($tab === 'disponibles')

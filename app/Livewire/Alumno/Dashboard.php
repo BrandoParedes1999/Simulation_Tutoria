@@ -26,15 +26,13 @@ class Dashboard extends Component
         $mensajesRecientes = $servicio->obtenerMensajesRecientes($alumno);
         $estadisticas    = app(MallaCurricularService::class)->obtenerEstadisticas($alumno);
 
-        $alertas = Alerta::where('alumno_id', $alumno->id)
+        $todasAlertas = Alerta::where('alumno_id', $alumno->id)
             ->where('atendida', false)
             ->orderByRaw("FIELD(prioridad, 'critica', 'media', 'baja')")
-            ->limit(3)
             ->get();
 
-        $alertasTotal = Alerta::where('alumno_id', $alumno->id)
-            ->where('atendida', false)
-            ->count();
+        $alertas      = $todasAlertas->take(3);
+        $alertasTotal = $todasAlertas->count();
 
         // Clasificación del promedio
         $clasificacionPromedio = match(true) {

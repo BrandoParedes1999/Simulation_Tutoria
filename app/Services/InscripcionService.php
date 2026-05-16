@@ -30,6 +30,7 @@ class InscripcionService
 
         $materias = MateriaMalla::whereIn('id', $materiasIds)
             ->where('activa', true)
+            ->with('prerrequisitos:materias_malla.id,clave,nombre')
             ->get();
 
         if ($materias->count() !== count($materiasIds)) {
@@ -185,7 +186,9 @@ class InscripcionService
             return [];
         }
 
-        $materias = MateriaMalla::whereIn('id', $materiasIds)->get();
+        $materias = MateriaMalla::whereIn('id', $materiasIds)
+            ->with('prerrequisitos:materias_malla.id,clave,nombre')
+            ->get();
 
         $inscripcionesPrevias = $alumno->inscripciones()
             ->select('materia_malla_id', 'estatus', 'periodo_id')
@@ -236,8 +239,8 @@ class InscripcionService
             throw InscripcionException::yaInscrita($materia->nombre);
         }
 
-        // Prerrequisitos
-        $prerreqs = $materia->prerrequisitos()->get(['materias_malla.id', 'clave', 'nombre']);
+        // Prerrequisitos (ya cargados con eager loading)
+        $prerreqs = $materia->prerrequisitos;
         $faltantes = [];
 
         foreach ($prerreqs as $prereq) {
@@ -270,7 +273,9 @@ class InscripcionService
 
     private function obtenerPeriodoActivo(): Periodo
     {
-        $periodo = Periodo::where('es_actual', true)->first();
+        $periodo = Cache::remember('periodo_actual', 60, fn() =>
+            Periodo::where('es_actual', true)->first()
+        );
 
         if (!$periodo) {
             throw InscripcionException::sinPeriodoActivo();
