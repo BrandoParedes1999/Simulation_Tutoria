@@ -37,7 +37,6 @@ Route::middleware(['auth', 'rol:alumno'])->prefix('alumno')->name('alumno.')->gr
 
     Route::post('/mensajes/{mensaje}/responder', [AlumnoMensajeController::class, 'responder'])->name('mensajes.responder');
     Route::post('/mensajes/{mensaje}/leer',      [AlumnoMensajeController::class, 'leer'])     ->name('mensajes.leer');
-    Route::post('/notificaciones/leer', [NotificacionController::class, 'marcarLeidas'])->name('notificaciones.leer');
 });
 
 // ── TUTOR ───────────────────────────────────────────────────────────────────
@@ -66,6 +65,10 @@ Route::middleware(['auth', 'rol:admin'])->prefix('admin')->name('admin.')->group
     Route::view('/dashboard', 'admin.dashboard')->name('dashboard');
     Route::view('/usuarios',  'admin.usuarios') ->name('usuarios');
 });
+
+// ── NOTIFICACIONES (cualquier usuario autenticado) ───────────────────────────
+Route::middleware('auth')->post('/notificaciones/leer', [NotificacionController::class, 'marcarLeidas'])
+    ->name('notificaciones.leer');
 
 // ── PERFIL ──────────────────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Alumno;
 
 use App\Http\Controllers\Controller;
 use App\Models\Mensaje;
+use App\Models\User;
+use App\Notifications\MensajeRecibido;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -26,15 +28,18 @@ class MensajeController extends Controller
             ? $mensaje->destinatario_id
             : $mensaje->remitente_id;
 
-        Mensaje::create([
-            'remitente_id'    => $userId,
-            'destinatario_id' => $destinatarioId,
-            'tipo_destinatario'=> 'individual',
-            'asunto'          => 'Re: ' . $mensaje->asunto,
-            'contenido'       => $request->contenido,
-            'prioridad'       => $mensaje->prioridad,
-            'mensaje_padre_id'=> $mensaje->id,
+        $respuesta = Mensaje::create([
+            'remitente_id'     => $userId,
+            'destinatario_id'  => $destinatarioId,
+            'tipo_destinatario' => 'individual',
+            'asunto'           => 'Re: ' . $mensaje->asunto,
+            'contenido'        => $request->contenido,
+            'prioridad'        => $mensaje->prioridad,
+            'mensaje_padre_id' => $mensaje->id,
         ]);
+
+        $destinatario = User::find($destinatarioId);
+        $destinatario?->notify(new MensajeRecibido($respuesta, auth()->user()->name));
 
         return response()->json(['ok' => true]);
     }

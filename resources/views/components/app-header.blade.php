@@ -65,68 +65,73 @@
             {{-- Usuario (desktop) --}}
             <div class="hidden lg:flex items-center gap-3">
 
-                {{-- Campana de notificaciones (solo alumnos) --}}
-                @if($rol === 'alumno')
-                    @php
-                        $notifs = auth()->user()->unreadNotifications()->latest()->limit(5)->get();
-                        $notifCount = $notifs->count();
-                    @endphp
-                    <div class="relative" x-data="{ open: false }" @click.away="open = false">
-                        <button @click="open = !open"
-                                class="relative p-2 rounded-lg text-blue-200 hover:text-white hover:bg-blue-800 transition-colors"
-                                :aria-expanded="open">
-                            @svg('lucide-bell', 'w-5 h-5')
+                {{-- Campana de notificaciones --}}
+                @php
+                    $notifs     = auth()->user()->unreadNotifications()->latest()->limit(5)->get();
+                    $notifCount = $notifs->count();
+                @endphp
+                <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                    <button @click="open = !open"
+                            class="relative p-2 rounded-lg text-blue-200 hover:text-white hover:bg-blue-800 transition-colors"
+                            :aria-expanded="open">
+                        @svg('lucide-bell', 'w-5 h-5')
+                        @if($notifCount > 0)
+                            <span class="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center leading-none">
+                                {{ $notifCount > 9 ? '9+' : $notifCount }}
+                            </span>
+                        @endif
+                    </button>
+                    <div x-show="open"
+                         x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden z-50">
+                        <div class="flex items-center justify-between px-4 py-3 border-b border-blue-50">
+                            <p class="text-sm font-bold text-blue-900">Notificaciones</p>
                             @if($notifCount > 0)
-                                <span class="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center leading-none">
-                                    {{ $notifCount > 9 ? '9+' : $notifCount }}
-                                </span>
+                                <form method="POST" action="{{ route('notificaciones.leer') }}">
+                                    @csrf
+                                    <button type="submit" class="text-xs text-blue-500 hover:text-blue-700">
+                                        Marcar todas como leídas
+                                    </button>
+                                </form>
                             @endif
-                        </button>
-                        <div x-show="open"
-                             x-cloak
-                             x-transition:enter="transition ease-out duration-150"
-                             x-transition:enter-start="opacity-0 translate-y-1"
-                             x-transition:enter-end="opacity-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-100"
-                             x-transition:leave-start="opacity-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 translate-y-1"
-                             class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden z-50">
-                            <div class="flex items-center justify-between px-4 py-3 border-b border-blue-50">
-                                <p class="text-sm font-bold text-blue-900">Notificaciones</p>
-                                @if($notifCount > 0)
-                                    <form method="POST" action="{{ route('alumno.notificaciones.leer') }}">
-                                        @csrf
-                                        <button type="submit" class="text-xs text-blue-500 hover:text-blue-700">
-                                            Marcar todas como leídas
-                                        </button>
-                                    </form>
-                                @endif
-                            </div>
-                            <div class="max-h-72 overflow-y-auto divide-y divide-blue-50">
-                                @forelse($notifs as $notif)
-                                    @php $data = $notif->data; @endphp
-                                    <div class="px-4 py-3 hover:bg-blue-50/50 transition-colors">
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        </div>
+                        <div class="max-h-72 overflow-y-auto divide-y divide-blue-50">
+                            @forelse($notifs as $notif)
+                                @php
+                                    $data     = $notif->data;
+                                    $isMensaje = ($data['tipo'] ?? '') === 'mensaje_recibido';
+                                @endphp
+                                <div class="px-4 py-3 hover:bg-blue-50/50 transition-colors">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-8 h-8 {{ $isMensaje ? 'bg-indigo-100' : 'bg-blue-100' }} rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                            @if($isMensaje)
+                                                @svg('lucide-mail', 'w-4 h-4 text-indigo-600')
+                                            @else
                                                 @svg('lucide-user-check', 'w-4 h-4 text-blue-600')
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-xs font-semibold text-blue-900">{{ $data['titulo'] ?? 'Notificación' }}</p>
-                                                <p class="text-xs text-blue-600 mt-0.5">{{ $data['mensaje'] ?? '' }}</p>
-                                                <p class="text-[10px] text-blue-300 mt-1">{{ $notif->created_at->locale('es')->diffForHumans() }}</p>
-                                            </div>
+                                            @endif
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-xs font-semibold text-blue-900">{{ $data['titulo'] ?? 'Notificación' }}</p>
+                                            <p class="text-xs text-blue-600 mt-0.5 truncate">{{ $data['mensaje'] ?? '' }}</p>
+                                            <p class="text-[10px] text-blue-300 mt-1">{{ $notif->created_at->locale('es')->diffForHumans() }}</p>
                                         </div>
                                     </div>
-                                @empty
-                                    <div class="px-4 py-8 text-center">
-                                        @svg('lucide-bell-off', 'w-8 h-8 text-blue-200 mx-auto mb-2')
-                                        <p class="text-xs text-blue-400">Sin notificaciones nuevas</p>
-                                    </div>
-                                @endforelse
-                            </div>
+                                </div>
+                            @empty
+                                <div class="px-4 py-8 text-center">
+                                    @svg('lucide-bell-off', 'w-8 h-8 text-blue-200 mx-auto mb-2')
+                                    <p class="text-xs text-blue-400">Sin notificaciones nuevas</p>
+                                </div>
+                            @endforelse
                         </div>
                     </div>
-                @endif
+                </div>
 
                 <div class="flex items-center gap-2.5 pl-3 border-l border-blue-700">
                     @if($user->foto)

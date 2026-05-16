@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Tutor;
 
 use App\Http\Controllers\Controller;
 use App\Models\Mensaje;
+use App\Models\User;
+use App\Notifications\MensajeRecibido;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -25,30 +27,39 @@ class MensajeController extends Controller
         $tutor  = auth()->user()->tutor;
         $userId = auth()->id();
 
+        $remitenteNombre = auth()->user()->name;
+
         if ($request->tipo === 'alumno') {
-            Mensaje::create([
-                'remitente_id'    => $userId,
-                'destinatario_id' => $request->destinatario_id,
-                'tipo_destinatario'=> 'individual',
-                'asunto'          => $request->asunto,
-                'contenido'       => $request->contenido,
-                'prioridad'       => $request->prioridad,
-                'plantilla_usada' => $request->plantilla,
+            $msg = Mensaje::create([
+                'remitente_id'     => $userId,
+                'destinatario_id'  => $request->destinatario_id,
+                'tipo_destinatario' => 'individual',
+                'asunto'           => $request->asunto,
+                'contenido'        => $request->contenido,
+                'prioridad'        => $request->prioridad,
+                'plantilla_usada'  => $request->plantilla,
             ]);
+
+            $destinatario = User::find($request->destinatario_id);
+            $destinatario?->notify(new MensajeRecibido($msg, $remitenteNombre));
         } else {
             // Mensaje grupal: crea un Mensaje por cada alumno asignado
-            $alumnos = $tutor->alumnosAsignados()->with('usuario:id')->get();
+            $alumnos = $tutor->alumnosAsignados()->with('usuario:id,name')->get();
 
             foreach ($alumnos as $alumno) {
-                Mensaje::create([
-                    'remitente_id'    => $userId,
-                    'destinatario_id' => $alumno->usuario_id,
-                    'tipo_destinatario'=> 'grupal',
-                    'asunto'          => $request->asunto,
-                    'contenido'       => $request->contenido,
-                    'prioridad'       => $request->prioridad,
-                    'plantilla_usada' => $request->plantilla,
+                if (!$alumno->usuario_id) continue;
+
+                $msg = Mensaje::create([
+                    'remitente_id'     => $userId,
+                    'destinatario_id'  => $alumno->usuario_id,
+                    'tipo_destinatario' => 'grupal',
+                    'asunto'           => $request->asunto,
+                    'contenido'        => $request->contenido,
+                    'prioridad'        => $request->prioridad,
+                    'plantilla_usada'  => $request->plantilla,
                 ]);
+
+                $alumno->usuario?->notify(new MensajeRecibido($msg, $remitenteNombre));
             }
         }
 
@@ -73,15 +84,18 @@ class MensajeController extends Controller
             ? $mensaje->destinatario_id
             : $mensaje->remitente_id;
 
-        Mensaje::create([
-            'remitente_id'    => $userId,
-            'destinatario_id' => $destinatarioId,
-            'tipo_destinatario'=> 'individual',
-            'asunto'          => 'Re: ' . $mensaje->asunto,
-            'contenido'       => $request->contenido,
-            'prioridad'       => $mensaje->prioridad,
-            'mensaje_padre_id'=> $mensaje->id,
+        $respuesta = Mensaje::create([
+            'remitente_id'     => $userId,
+            'destinatario_id'  => $destinatarioId,
+            'tipo_destinatario' => 'individual',
+            'asunto'           => 'Re: ' . $mensaje->asunto,
+            'contenido'        => $request->contenido,
+            'prioridad'        => $mensaje->prioridad,
+            'mensaje_padre_id' => $mensaje->id,
         ]);
+
+        $destinatario = User::find($destinatarioId);
+        $destinatario?->notify(new MensajeRecibido($respuesta, auth()->user()->name));
 
         return response()->json(['ok' => true]);
     }
