@@ -77,7 +77,7 @@
             alumnos: {{ $alumnos->map(fn($a) => [
                 'usuario_id' => $a->usuario_id,
                 'nombre'     => $a->usuario?->name ?? 'Sin nombre ('.$a->matricula.')',
-                'carrera'    => $a->carrera->nombre ?? $a->carrera->clave ?? '',
+                'carrera'    => $a->carrera?->nombre ?? $a->carrera?->clave ?? '',
                 // Promedio en escala 0-100
                 'promedio'   => number_format((float)$a->promedio_general, 1),
                 'alertas'    => $alertasPorAlumno[$a->id] ?? 0,
