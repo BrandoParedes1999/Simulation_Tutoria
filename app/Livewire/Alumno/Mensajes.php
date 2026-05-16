@@ -3,6 +3,8 @@
 namespace App\Livewire\Alumno;
 
 use App\Models\Mensaje;
+use App\Models\User;
+use App\Notifications\MensajeRecibido;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -43,7 +45,7 @@ class Mensajes extends Component
             ? $mensaje->destinatario_id
             : $mensaje->remitente_id;
 
-        Mensaje::create([
+        $respuesta = Mensaje::create([
             'remitente_id'     => $userId,
             'destinatario_id'  => $destinatarioId,
             'tipo_destinatario'=> 'individual',
@@ -52,6 +54,8 @@ class Mensajes extends Component
             'prioridad'        => $mensaje->prioridad,
             'mensaje_padre_id' => $this->conversacionActivaId,
         ]);
+
+        User::find($destinatarioId)?->notify(new MensajeRecibido($respuesta, auth()->user()->name));
 
         $this->textoRespuesta = '';
         $this->dispatch('toast', tipo: 'success', mensaje: 'Respuesta enviada');
