@@ -13,18 +13,9 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Materias extends Component
 {
-    public string $tab            = 'disponibles';
     public array  $carrito        = [];
     public string $busqueda       = '';
     public ?int   $filtroSemestre = null;
-
-    public function mount(): void { $this->tab = 'disponibles'; }
-
-    public function cambiarTab(string $tab): void
-    {
-        if (!in_array($tab, ['disponibles', 'carrito', 'inscritas'])) return;
-        $this->tab = $tab;
-    }
 
     public function agregarAlCarrito(int $materiaId): void
     {
@@ -79,8 +70,8 @@ class Materias extends Component
             $inscripciones = app(InscripcionService::class)->inscribir($alumno, $this->carrito);
             $this->invalidarCache($alumno->id);
             $this->carrito = [];
-            $this->tab     = 'inscritas';
-            $count         = $inscripciones->count();
+            $this->dispatch('mudar-tab', tab: 'inscritas');
+            $count = $inscripciones->count();
             $this->dispatch('toast', tipo: 'success',
                 mensaje: "¡Inscripción exitosa! {$count} " . ($count === 1 ? 'materia inscrita' : 'materias inscritas')
             );
@@ -116,7 +107,6 @@ class Materias extends Component
 
     public function render()
     {
-        // ── Guardia principal ─────────────────────────────────────────
         $alumno = auth()->user()?->alumno;
 
         $vacio = [
@@ -142,7 +132,6 @@ class Materias extends Component
             Periodo::where('es_actual', true)->first()
         );
 
-        // ── Materias disponibles (cacheado 60s para respuesta rápida en cambio de pestaña) ──
         try {
             $todasDisponibles = Cache::remember(
                 "mats_disp_{$alumno->id}",
@@ -153,7 +142,6 @@ class Materias extends Component
             $todasDisponibles = collect();
         }
 
-        // ── Filtros en memoria ────────────────────────────────────────
         $sugeridas = $todasDisponibles->where('semestre', $alumno->semestre_actual)->values();
 
         $semestresDisponibles = $todasDisponibles
@@ -172,7 +160,6 @@ class Materias extends Component
         }
         $disponibles = $disponibles->values();
 
-        // ── Carrito ───────────────────────────────────────────────────
         $materiasEnCarrito = empty($this->carrito)
             ? collect()
             : $todasDisponibles->whereIn('id', $this->carrito)->values();
@@ -187,7 +174,6 @@ class Materias extends Component
             $erroresCarrito = [];
         }
 
-        // ── Inscritas (cacheado 60s) ──────────────────────────────────
         try {
             $inscritas = $periodo
                 ? Cache::remember(
@@ -200,7 +186,6 @@ class Materias extends Component
             $inscritas = collect();
         }
 
-        // ── Fechas ────────────────────────────────────────────────────
         $periodoAbierto           = $periodo?->estaAbiertoParaInscripcion() ?? false;
         $diasRestantesInscripcion = 0;
 
