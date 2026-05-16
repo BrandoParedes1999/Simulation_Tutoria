@@ -139,7 +139,7 @@
                             <option value="">Seleccionar alumno...</option>
                             @foreach($alumnos as $a)
                                 <option value="{{ $a->id }}">
-                                    {{ $a->usuario->name }} — {{ $a->matricula }}
+                                    {{ $a->usuario?->name ?? 'Sin nombre' }} — {{ $a->matricula }}
                                     (Prom. {{ number_format((float)$a->promedio_general, 1) }})
                                 </option>
                             @endforeach

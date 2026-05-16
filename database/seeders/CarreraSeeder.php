@@ -6,7 +6,7 @@ use App\Models\Carrera;
 
 class CarreraSeeder extends Seeder {
     public function run(): void {
-        Carrera::create([
+        Carrera::firstOrCreate(['clave' => 'ISC'], [
             'nombre' => 'Ingeniería en Sistemas Computacionales',
             'clave' => 'ISC',
             'total_semestres' => 9,

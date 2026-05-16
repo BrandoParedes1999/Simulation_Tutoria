@@ -3,6 +3,8 @@
 namespace App\Livewire\Alumno;
 
 use App\Models\Mensaje;
+use App\Models\User;
+use App\Notifications\MensajeRecibido;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -12,6 +14,13 @@ class Mensajes extends Component
     public ?int  $conversacionActivaId = null;
     public string $textoRespuesta = '';
     public string $pestana = 'recibidos';
+
+    public function mount(): void
+    {
+        if ($id = request()->query('conversacion')) {
+            $this->seleccionar((int) $id);
+        }
+    }
 
     public function seleccionar(int $mensajeId): void
     {
@@ -43,7 +52,7 @@ class Mensajes extends Component
             ? $mensaje->destinatario_id
             : $mensaje->remitente_id;
 
-        Mensaje::create([
+        $respuesta = Mensaje::create([
             'remitente_id'     => $userId,
             'destinatario_id'  => $destinatarioId,
             'tipo_destinatario'=> 'individual',
@@ -53,6 +62,8 @@ class Mensajes extends Component
             'mensaje_padre_id' => $this->conversacionActivaId,
         ]);
 
+        User::find($destinatarioId)?->notify(new MensajeRecibido($respuesta, auth()->user()->name));
+
         $this->textoRespuesta = '';
         $this->dispatch('toast', tipo: 'success', mensaje: 'Respuesta enviada');
     }
@@ -61,7 +72,7 @@ class Mensajes extends Component
     {
         $userId = auth()->id();
 
-        $conversaciones = Mensaje::where(function ($q) use ($userId) {
+        $todasConversaciones = Mensaje::where(function ($q) use ($userId) {
                 $q->where('remitente_id', $userId)
                   ->orWhere('destinatario_id', $userId);
             })
@@ -75,23 +86,24 @@ class Mensajes extends Component
             ->orderByDesc('created_at')
             ->get();
 
-        // Filtrar pestañas
-        $filtradas = match ($this->pestana) {
-            'enviados' => $conversaciones->filter(fn ($m) => $m->remitente_id === $userId),
-            'urgentes' => $conversaciones->filter(fn ($m) => $m->prioridad === 'urgente'),
-            default    => $conversaciones->filter(fn ($m) => $m->destinatario_id === $userId),
-        };
+        $recibidos = $todasConversaciones->filter(fn ($m) => $m->destinatario_id === $userId)->values();
+        $enviados  = $todasConversaciones->filter(fn ($m) => $m->remitente_id === $userId)->values();
+        $urgentes  = $todasConversaciones->filter(fn ($m) => $m->prioridad === 'urgente')->values();
 
-        $noLeidos       = $conversaciones->filter(fn ($m) => $m->destinatario_id === $userId && !$m->leido_en)->count();
+        $noLeidos = $recibidos->filter(fn ($m) => !$m->leido_en)->count();
+
         $conversacionActiva = $this->conversacionActivaId
-            ? $conversaciones->firstWhere('id', $this->conversacionActivaId)
+            ? $todasConversaciones->firstWhere('id', $this->conversacionActivaId)
             : null;
 
         return view('livewire.alumno.mensajes', [
-            'conversaciones'    => $filtradas->values(),
-            'conversacionActiva'=> $conversacionActiva,
-            'noLeidos'          => $noLeidos,
-            'userId'            => $userId,
+            'recibidos'          => $recibidos,
+            'enviados'           => $enviados,
+            'urgentes'           => $urgentes,
+            'conversacionActiva' => $conversacionActiva,
+            'noLeidos'           => $noLeidos,
+            'userId'             => $userId,
+            'pestanaInicial'     => $this->pestana,
         ]);
     }
 }

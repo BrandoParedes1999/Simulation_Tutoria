@@ -6,6 +6,7 @@ use App\Models\Alumno;
 use App\Models\Inscripcion;
 use App\Models\Mensaje;
 use App\Models\Periodo;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class ElegibilidadService
@@ -20,11 +21,15 @@ class ElegibilidadService
 
     public function evaluar(Alumno $alumno): array
     {
-        $totalCreditos = (int) DB::table('materias_malla')
-            ->where('carrera_id', $alumno->carrera_id)
-            ->where('activa', true)
-            ->whereNotIn('tipo', ['especial'])
-            ->sum('creditos');
+        $totalCreditos = Cache::remember(
+            "total_creditos_elegibilidad_{$alumno->carrera_id}",
+            3600,
+            fn() => (int) DB::table('materias_malla')
+                ->where('carrera_id', $alumno->carrera_id)
+                ->where('activa', true)
+                ->whereNotIn('tipo', ['especial'])
+                ->sum('creditos')
+        );
 
         $creditosAprobados = (int) ($alumno->creditos_aprobados ?? 0);
         $porcentaje = $totalCreditos > 0 ? round(($creditosAprobados / $totalCreditos) * 100, 1) : 0;

@@ -6,6 +6,9 @@ use App\Http\Controllers\Tutor\MensajeController  as TutorMensajeController;
 use App\Http\Controllers\Tutor\AlertaController   as TutorAlertaController;
 use App\Http\Controllers\Tutor\ReporteController  as TutorReporteController;
 use App\Http\Controllers\Alumno\MensajeController as AlumnoMensajeController;
+use App\Http\Controllers\Alumno\NotificacionController;
+use App\Livewire\Tutor\GestionAlumnos as TutorGestionAlumnos;
+use App\Livewire\Tutor\Mensajes as TutorMensajes;
 
 Route::get('/', function () {
     if (auth()->check()) return redirect()->route('dashboard');
@@ -40,9 +43,9 @@ Route::middleware(['auth', 'rol:alumno'])->prefix('alumno')->name('alumno.')->gr
 // ── TUTOR ───────────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'rol:tutor'])->prefix('tutor')->name('tutor.')->group(function () {
     Route::view('/dashboard', 'tutor.dashboard')->name('dashboard');
-    Route::view('/alumnos',   'tutor.alumnos')  ->name('alumnos');
+    Route::get('/alumnos', TutorGestionAlumnos::class)->name('alumnos');
     Route::view('/alertas',   'tutor.alertas')  ->name('alertas');
-    Route::view('/mensajes',  'tutor.mensajes')  ->name('mensajes');
+    Route::get('/mensajes', TutorMensajes::class)->name('mensajes');
 
     Route::get('/reportes', [TutorReporteController::class, 'index'])->name('reportes');
 
@@ -62,6 +65,12 @@ Route::middleware(['auth', 'rol:tutor'])->prefix('tutor')->name('tutor.')->group
 Route::middleware(['auth', 'rol:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::view('/dashboard', 'admin.dashboard')->name('dashboard');
     Route::view('/usuarios',  'admin.usuarios') ->name('usuarios');
+});
+
+// ── NOTIFICACIONES (cualquier usuario autenticado) ───────────────────────────
+Route::middleware('auth')->group(function () {
+    Route::post('/notificaciones/leer',          [NotificacionController::class, 'marcarLeidas']) ->name('notificaciones.leer');
+    Route::get('/notificaciones/{notif}/abrir',  [NotificacionController::class, 'abrirYLeer'])   ->name('notificaciones.abrir');
 });
 
 // ── PERFIL ──────────────────────────────────────────────────────────────────

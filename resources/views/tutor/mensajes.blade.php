@@ -76,8 +76,8 @@
 
             alumnos: {{ $alumnos->map(fn($a) => [
                 'usuario_id' => $a->usuario_id,
-                'nombre'     => $a->usuario->name,
-                'carrera'    => $a->carrera->nombre ?? $a->carrera->clave ?? '',
+                'nombre'     => $a->usuario?->name ?? 'Sin nombre ('.$a->matricula.')',
+                'carrera'    => $a->carrera?->nombre ?? $a->carrera?->clave ?? '',
                 // Promedio en escala 0-100
                 'promedio'   => number_format((float)$a->promedio_general, 1),
                 'alertas'    => $alertasPorAlumno[$a->id] ?? 0,
@@ -223,13 +223,14 @@
                         <div class="flex items-center gap-2 bg-white border border-red-100 rounded-xl px-3 py-2">
                             <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                                 <span class="text-blue-700 font-bold text-xs">
-                                    {{ strtoupper(substr($ac->usuario->name, 0, 1)) }}
+                                    {{ strtoupper(substr($ac->usuario?->name ?? $ac->matricula, 0, 1)) }}
                                 </span>
                             </div>
                             <div>
+                                @php $acNombre = $ac->usuario?->name ?? $ac->matricula; @endphp
                                 <p class="text-xs font-semibold text-blue-900">
-                                    {{ explode(' ', $ac->usuario->name)[0] }}
-                                    {{ explode(' ', $ac->usuario->name)[1] ?? '' }}
+                                    {{ explode(' ', $acNombre)[0] }}
+                                    {{ explode(' ', $acNombre)[1] ?? '' }}
                                 </p>
                                 {{-- Promedio en escala 0-100 --}}
                                 <p class="text-xs text-red-500">

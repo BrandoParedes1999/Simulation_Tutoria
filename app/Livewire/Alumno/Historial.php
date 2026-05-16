@@ -10,7 +10,6 @@ use Livewire\Component;
 class Historial extends Component
 {
     public string $filtroEstatus = 'todos';
-    public ?int   $periodoDetalle = null;
 
     public function render()
     {
