@@ -156,14 +156,16 @@
                                     <p class="text-xs text-slate-400 mt-1" x-text="'Generada: ' + a.fecha"></p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2 flex-shrink-0">
+                            {{-- En móvil los botones se apilan verticalmente (ISO 9241-210 adaptación táctil) --}}
+                            <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
                                 <a :href="urlBase + '/' + a.alumno_id"
                                    :aria-label="'Ver detalle de ' + a.nombre"
-                                   class="text-xs text-blue-600 font-medium hover:underline">Ver detalle</a>
-                                <span class="text-slate-200">|</span>
+                                   title="Ver historial completo del alumno"
+                                   class="text-xs text-blue-600 font-medium hover:underline whitespace-nowrap">Ver detalle</a>
                                 <button @click="marcarAtendida(a)"
+                                        title="Confirmar que esta alerta fue atendida"
                                         class="px-3 py-1.5 border border-blue-200 rounded-lg text-blue-600
-                                               text-xs font-medium hover:bg-blue-50 transition">
+                                               text-xs font-medium hover:bg-blue-50 transition whitespace-nowrap">
                                     Marcar atendida
                                 </button>
                             </div>
@@ -190,13 +192,15 @@
                                     <p class="text-xs text-slate-400 mt-1" x-text="'Generada: ' + a.fecha"></p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2 flex-shrink-0">
+                            <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
                                 <a :href="urlBase + '/' + a.alumno_id"
                                    :aria-label="'Ver detalle de ' + a.nombre"
-                                   class="text-xs text-blue-600 font-medium hover:underline">Ver detalle</a>
+                                   title="Ver historial completo del alumno"
+                                   class="text-xs text-blue-600 font-medium hover:underline whitespace-nowrap">Ver detalle</a>
                                 <button @click="marcarAtendida(a)"
+                                        title="Confirmar que esta alerta fue atendida"
                                         class="px-3 py-1.5 border border-blue-200 rounded-lg text-blue-600
-                                               text-xs font-medium hover:bg-blue-50 transition">
+                                               text-xs font-medium hover:bg-blue-50 transition whitespace-nowrap">
                                     Marcar atendida
                                 </button>
                             </div>
@@ -223,13 +227,15 @@
                                     <p class="text-xs text-slate-400 mt-1" x-text="'Generada: ' + a.fecha"></p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2 flex-shrink-0">
+                            <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
                                 <a :href="urlBase + '/' + a.alumno_id"
                                    :aria-label="'Ver detalle de ' + a.nombre"
-                                   class="text-xs text-blue-600 font-medium hover:underline">Ver detalle</a>
+                                   title="Ver historial completo del alumno"
+                                   class="text-xs text-blue-600 font-medium hover:underline whitespace-nowrap">Ver detalle</a>
                                 <button @click="marcarAtendida(a)"
+                                        title="Confirmar que esta alerta fue atendida"
                                         class="px-3 py-1.5 border border-blue-200 rounded-lg text-blue-600
-                                               text-xs font-medium hover:bg-blue-50 transition">
+                                               text-xs font-medium hover:bg-blue-50 transition whitespace-nowrap">
                                     Marcar atendida
                                 </button>
                             </div>
@@ -288,6 +294,7 @@
                                                   'bg-amber-100 text-amber-600': a.prioridad === 'media',
                                                   'bg-blue-100 text-blue-600':   a.prioridad === 'baja',
                                               }"
+                                              :title="a.prioridad === 'critica' ? 'Crítica: requiere atención inmediata' : (a.prioridad === 'media' ? 'Media: monitorear esta semana' : 'Baja: seguimiento periódico')"
                                               x-text="a.prioridad">
                                         </span>
                                     </td>

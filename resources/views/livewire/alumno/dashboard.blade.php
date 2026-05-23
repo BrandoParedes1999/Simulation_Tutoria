@@ -266,14 +266,30 @@
                     @endforeach
                 </div>
             @else
+                {{--
+                    PDF Tema 1 / Nielsen H5 (Prevención de errores):
+                    Si el alumno NO tiene materias inscritas, mostrar enlace a
+                    inscripción en lugar de "Capturar ahora", que sería inoperable.
+                --}}
                 <div class="py-8 text-center">
                     @svg('lucide-bar-chart-3', 'w-10 h-10 text-blue-200 mx-auto mb-2')
-                    <p class="text-xs text-blue-500">Aún no has capturado calificaciones</p>
-                    <a href="{{ route('alumno.calificaciones') }}" wire:navigate
-                       class="inline-flex items-center gap-1 mt-3 px-3 py-1.5 bg-blue-700 text-white text-xs font-medium rounded-lg hover:bg-blue-800">
-                        @svg('lucide-pen-line', 'w-3 h-3')
-                        Capturar ahora
-                    </a>
+                    @if($datosPeriodo['materias_en_curso'] > 0)
+                        <p class="text-xs text-blue-500">Aún no has capturado calificaciones</p>
+                        <a href="{{ route('alumno.calificaciones') }}" wire:navigate
+                           class="inline-flex items-center gap-1 mt-3 px-3 py-1.5 bg-blue-700 text-white text-xs font-medium rounded-lg hover:bg-blue-800"
+                           title="Ir a capturar tus calificaciones del periodo actual">
+                            @svg('lucide-pen-line', 'w-3 h-3')
+                            Capturar ahora
+                        </a>
+                    @else
+                        <p class="text-xs text-blue-500">Primero inscribe tus materias para registrar calificaciones</p>
+                        <a href="{{ route('alumno.materias') }}" wire:navigate
+                           class="inline-flex items-center gap-1 mt-3 px-3 py-1.5 bg-amber-600 text-white text-xs font-medium rounded-lg hover:bg-amber-700"
+                           title="Ir a inscripción de materias">
+                            @svg('lucide-book-open', 'w-3 h-3')
+                            Inscribir materias →
+                        </a>
+                    @endif
                 </div>
             @endif
         </div>
