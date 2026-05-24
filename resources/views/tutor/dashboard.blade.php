@@ -231,160 +231,199 @@
             </div>
         </div>
 
-       
-      {{-- Gráficas --}}
-        <div id="graficas-export" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {{-- Gráficas --}}
+        <div id="graficas-export" class="bg-white rounded-2xl border border-blue-100 p-5 shadow-sm"
+             x-data="{
+                 tipo: 'barras',
+                 chart: null,
 
-            {{-- FIX #3: Distribución con rangos 0-100 --}}
-            <div class="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
-                <p class="text-sm font-bold text-blue-900">Distribución de calificaciones</p>
-                <p class="text-xs text-blue-400 mt-0.5 mb-4">Alumnos por rango — semestre actual</p>
-                <div class="flex gap-2">
-                    <div class="flex flex-col justify-between text-right" style="height:110px">
-                        <span class="text-xs text-slate-400">{{ max(1, $alumnos->count()) }}</span>
-                        <span class="text-xs text-slate-400">{{ max(1, intval($alumnos->count() * 0.75)) }}</span>
-                        <span class="text-xs text-slate-400">{{ max(1, intval($alumnos->count() * 0.5)) }}</span>
-                        <span class="text-xs text-slate-400">{{ max(1, intval($alumnos->count() * 0.25)) }}</span>
-                        <span class="text-xs text-slate-400">0</span>
-                    </div>
-                    <div class="flex items-end gap-3 flex-1" style="height:110px">
-                        @foreach($dist as $rango => $cantidad)
-                            <div class="flex flex-col items-center flex-1 gap-1 h-full justify-end">
-                                <div class="w-full rounded-t-md"
-                                     style="background:{{ $colores[$rango] }};
-                                            height:{{ max(4, $alumnos->count() > 0 ? ($cantidad / $alumnos->count()) * 100 : 0) }}px">
-                                </div>
-                                <span class="text-slate-400" style="font-size:9px">{{ $rango }}</span>
-                            </div>
-                        @endforeach
-                    </div>
+                 distData: @js(['labels' => array_keys($dist), 'valores' => array_values($dist), 'colores' => array_values($colores)]),
+                 donaData: @js(['excelentes' => $excelentes, 'regulares' => $regulares, 'enRiesgo' => $enRiesgo, 'total' => $alumnos->count()]),
+                 evData:   @js($evolucion),
+
+                 descripciones: {
+                     barras:     'Número de alumnos por rango de calificación. Verde: excelente (90-100), Azul: bueno (80-89), Amarillo: regular (70-79), Rojo: en riesgo (<70).',
+                     pastel:     'Proporción del grupo por nivel de rendimiento. Permite identificar rápidamente cuántos alumnos requieren atención.',
+                     dispersion: 'Evolución del promedio grupal a lo largo de los periodos académicos registrados.'
+                 },
+
+                 titulos: {
+                     barras:     'Distribución de calificaciones',
+                     pastel:     'Estado del grupo',
+                     dispersion: 'Evolución del promedio grupal'
+                 },
+
+                 init() { this.$nextTick(() => this.render()); },
+
+                 cambiar(t) { this.tipo = t; this.$nextTick(() => this.render()); },
+
+                 render() {
+                     if (this.chart) { this.chart.destroy(); this.chart = null; }
+                     if (typeof Chart === 'undefined') return;
+                     const ctx = this.$refs.canvas.getContext('2d');
+
+                     if (this.tipo === 'barras') {
+                         this.chart = new Chart(ctx, {
+                             type: 'bar',
+                             data: {
+                                 labels: this.distData.labels,
+                                 datasets: [{
+                                     label: 'Alumnos',
+                                     data: this.distData.valores,
+                                     backgroundColor: this.distData.colores,
+                                     borderRadius: 8,
+                                     borderSkipped: false,
+                                 }]
+                             },
+                             options: {
+                                 responsive: true, maintainAspectRatio: false,
+                                 plugins: {
+                                     legend: { display: false },
+                                     tooltip: {
+                                         backgroundColor: '#1e3a8a',
+                                         callbacks: { label: c => `${c.parsed.y} alumno(s)` }
+                                     }
+                                 },
+                                 scales: {
+                                     y: { beginAtZero: true, ticks: { stepSize: 1, color: '#94a3b8' }, grid: { color: '#f1f5f9' } },
+                                     x: { grid: { display: false }, ticks: { color: '#64748b' } }
+                                 }
+                             }
+                         });
+                     } else if (this.tipo === 'pastel') {
+                         const total = this.donaData.total || 1;
+                         this.chart = new Chart(ctx, {
+                             type: 'doughnut',
+                             data: {
+                                 labels: ['Excelentes (≥90)', 'Regulares (70-89)', 'En riesgo (<70)'],
+                                 datasets: [{
+                                     data: [this.donaData.excelentes, this.donaData.regulares, this.donaData.enRiesgo],
+                                     backgroundColor: ['#22c55e', '#3b82f6', '#ef4444'],
+                                     borderWidth: 3,
+                                     borderColor: '#ffffff',
+                                     hoverBorderColor: '#ffffff',
+                                 }]
+                             },
+                             options: {
+                                 responsive: true, maintainAspectRatio: false, cutout: '60%',
+                                 plugins: {
+                                     legend: {
+                                         position: 'bottom',
+                                         labels: { font: { size: 11 }, color: '#475569', padding: 12, usePointStyle: true }
+                                     },
+                                     tooltip: {
+                                         backgroundColor: '#1e3a8a',
+                                         callbacks: {
+                                             label: c => {
+                                                 const pct = Math.round((c.parsed / total) * 100);
+                                                 return `${c.label}: ${c.parsed} alumno(s) (${pct}%)`;
+                                             }
+                                         }
+                                     }
+                                 }
+                             }
+                         });
+                     } else {
+                         const raw = this.evData.filter(d => !d.sin_datos && d.prom > 0);
+                         const labels = raw.map(d => d.sem);
+                         const vals   = raw.map(d => d.prom);
+                         if (vals.length === 0) { return; }
+                         this.chart = new Chart(ctx, {
+                             type: 'line',
+                             data: {
+                                 labels,
+                                 datasets: [{
+                                     label: 'Promedio grupal',
+                                     data: vals,
+                                     borderColor: '#3b82f6',
+                                     backgroundColor: 'rgba(59,130,246,0.12)',
+                                     fill: true,
+                                     tension: 0.35,
+                                     pointBackgroundColor: '#3b82f6',
+                                     pointBorderColor: '#ffffff',
+                                     pointBorderWidth: 2,
+                                     pointRadius: 5,
+                                     pointHoverRadius: 7,
+                                 }]
+                             },
+                             options: {
+                                 responsive: true, maintainAspectRatio: false,
+                                 plugins: {
+                                     legend: { display: false },
+                                     tooltip: {
+                                         backgroundColor: '#1e3a8a',
+                                         callbacks: { label: c => `Promedio: ${Number(c.parsed.y).toFixed(1)} pts` }
+                                     }
+                                 },
+                                 scales: {
+                                     y: { min: 0, max: 100, grid: { color: '#f1f5f9' }, ticks: { color: '#94a3b8' } },
+                                     x: { grid: { display: false }, ticks: { color: '#64748b' } }
+                                 }
+                             }
+                         });
+                     }
+                 }
+             }">
+
+            {{-- Cabecera de la tarjeta --}}
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                <div>
+                    <p class="text-sm font-bold text-blue-900" x-text="titulos[tipo]"></p>
+                    <p class="text-xs text-blue-400 mt-0.5" x-text="descripciones[tipo]"></p>
                 </div>
-                <div class="flex flex-wrap gap-x-3 gap-y-1 mt-3">
-                    @foreach($dist as $rango => $cantidad)
-                        <span class="flex items-center gap-1 text-xs text-slate-500">
-                            <span class="inline-block w-2 h-2 rounded-full"
-                                  style="background:{{ $colores[$rango] }}"></span>
-                            {{ $rango }} pts ({{ $cantidad }})
-                        </span>
-                    @endforeach
+                {{-- Botones de tipo de gráfica --}}
+                <div class="flex gap-1.5 flex-shrink-0">
+                    <button @click="cambiar('barras')"
+                            :class="tipo==='barras' ? 'bg-blue-700 text-white shadow-md' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+                            title="Ver distribución de calificaciones por rango">
+                        @svg('lucide-bar-chart-2', 'w-3.5 h-3.5')
+                        Barras
+                    </button>
+                    <button @click="cambiar('pastel')"
+                            :class="tipo==='pastel' ? 'bg-blue-700 text-white shadow-md' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+                            title="Ver proporción del grupo por nivel de rendimiento">
+                        @svg('lucide-pie-chart', 'w-3.5 h-3.5')
+                        Pastel
+                    </button>
+                    <button @click="cambiar('dispersion')"
+                            :class="tipo==='dispersion' ? 'bg-blue-700 text-white shadow-md' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+                            title="Ver evolución del promedio grupal por periodo">
+                        @svg('lucide-trending-up', 'w-3.5 h-3.5')
+                        Evolución
+                    </button>
                 </div>
             </div>
 
-            {{-- FIX #4: Evolución con escala correcta 0-100 --}}
-            <div class="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
-                <p class="text-sm font-bold text-blue-900">Evolución del promedio grupal</p>
-                <p class="text-xs text-blue-400 mt-0.5 mb-2">Últimos {{ count($evolucion) }} periodos</p>
-
-                @if(count($promConDatos) === 0)
-                    <div class="flex flex-col items-center justify-center" style="height:120px">
-                        @svg('lucide-bar-chart-2', 'w-8 h-8 text-blue-100 mb-2')
-                        <p class="text-xs text-slate-400 text-center">Sin calificaciones registradas aún</p>
-                    </div>
-                @else
-                    <svg viewBox="0 0 240 100" style="width:100%;height:120px">
-                        @php
-                            $paso  = ($maxP - $minP) / 4;
-                            $guias = [];
-                            for ($g = 0; $g <= 4; $g++) {
-                                $guias[] = round($minP + $paso * $g, 0);
-                            }
-                        @endphp
-                        @foreach($guias as $guia)
-                            @php
-                                $yg = $svgH - $pad - (($guia - $minP) / ($maxP - $minP)) * ($svgH - $pad * 2);
-                                $yg = max($pad, min($svgH - $pad, $yg));
-                            @endphp
-                            <line x1="{{ $pad }}" y1="{{ $yg }}"
-                                  x2="{{ $svgW - $pad }}" y2="{{ $yg }}"
-                                  stroke="#e2e8f0" stroke-width="0.5"/>
-                            <text x="{{ $pad - 2 }}" y="{{ $yg + 3 }}"
-                                  text-anchor="end" font-size="8" fill="#94a3b8">{{ $guia }}</text>
-                        @endforeach
-
-                        @if(strlen(trim($pts)) > 0)
-                            <polyline points="{{ trim($pts) }}"
-                                      fill="none" stroke="#3b82f6" stroke-width="2"
-                                      stroke-linejoin="round" stroke-linecap="round"/>
-                        @endif
-
-                        @foreach($evolucion as $i => $d)
-                            @php
-                                $divisor = count($evolucion) > 1 ? count($evolucion) - 1 : 1;
-                                $x = $pad + ($i / $divisor) * ($svgW - $pad * 2);
-                                if (!$d['sin_datos'] && $d['prom'] > 0) {
-                                    $y = $svgH - $pad - (($d['prom'] - $minP) / ($maxP - $minP)) * ($svgH - $pad * 2);
-                                    $y = max($pad, min($svgH - $pad, $y));
-                                } else {
-                                    $y = $svgH - $pad;
-                                }
-                            @endphp
-                            @if(!$d['sin_datos'] && $d['prom'] > 0)
-                                <circle cx="{{ $x }}" cy="{{ $y }}" r="3" fill="#3b82f6"/>
-                            @else
-                                <circle cx="{{ $x }}" cy="{{ $y }}" r="3"
-                                        fill="white" stroke="#cbd5e1" stroke-width="1.5"/>
-                            @endif
-                            <text x="{{ $x }}" y="97"
-                                  text-anchor="middle" font-size="8" fill="#94a3b8">{{ $d['sem'] }}</text>
-                        @endforeach
-                    </svg>
-                @endif
-
-                <p class="text-xs text-blue-500 mt-1 font-medium">
-                    — Promedio grupal · Actual:
-                    <strong class="text-blue-700">{{ $promedioGrupal }}</strong> pts
-                </p>
+            {{-- Canvas de la gráfica --}}
+            <div class="relative" style="height: 260px;">
+                <canvas x-ref="canvas"></canvas>
+                {{-- Estado vacío para dispersión --}}
+                <div x-show="tipo === 'dispersion' && evData.filter(d => !d.sin_datos && d.prom > 0).length === 0"
+                     class="absolute inset-0 flex flex-col items-center justify-center">
+                    @svg('lucide-bar-chart-2', 'w-10 h-10 text-blue-100 mb-2')
+                    <p class="text-xs text-slate-400">Sin calificaciones registradas aún</p>
+                </div>
             </div>
 
-            {{-- Estado del grupo (dona) - umbrales corregidos en variables --}}
-            <div class="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
-                <p class="text-sm font-bold text-blue-900">Estado del grupo</p>
-                <p class="text-xs text-blue-400 mt-0.5 mb-3">{{ $alumnos->count() }} alumnos en total</p>
-                <div class="flex items-center gap-3">
-                    <svg viewBox="0 0 140 140" style="width:100px;height:100px;flex-shrink:0">
-                        <circle cx="{{ $cx }}" cy="{{ $cy }}" r="{{ $r }}"
-                                fill="none" stroke="#f1f5f9" stroke-width="20"/>
-                        @foreach($arcos as $arc)
-                            @if($arc['len'] > 0)
-                                <circle cx="{{ $cx }}" cy="{{ $cy }}" r="{{ $r }}"
-                                        fill="none"
-                                        stroke="{{ $arc['color'] }}"
-                                        stroke-width="20"
-                                        stroke-dasharray="{{ $arc['len'] }} {{ $circ - $arc['len'] }}"
-                                        stroke-dashoffset="{{ $arc['offset'] }}"
-                                        transform="rotate(-90 {{ $cx }} {{ $cy }})"/>
-                            @endif
-                        @endforeach
-                        <text x="{{ $cx }}" y="{{ $cy - 4 }}"
-                              text-anchor="middle" font-size="10" fill="#94a3b8">Regulares</text>
-                        <text x="{{ $cx }}" y="{{ $cy + 10 }}"
-                              text-anchor="middle" font-size="14" font-weight="bold" fill="#1e3a5f">
-                            {{ $regulares }}
-                        </text>
-                    </svg>
-                    <div class="flex-1 space-y-2">
-                        <div class="flex items-center justify-between text-xs text-slate-600">
-                            <span class="flex items-center gap-1.5">
-                                <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
-                                Excelentes (≥90)
-                            </span>
-                            <strong>{{ $excelentes }}</strong>
-                        </div>
-                        <div class="flex items-center justify-between text-xs text-slate-600">
-                            <span class="flex items-center gap-1.5">
-                                <span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span>
-                                Regulares (70-89)
-                            </span>
-                            <strong>{{ $regulares }}</strong>
-                        </div>
-                        <div class="flex items-center justify-between text-xs text-slate-600">
-                            <span class="flex items-center gap-1.5">
-                                <span class="inline-block w-2 h-2 rounded-full bg-red-500"></span>
-                                En riesgo (&lt;70)
-                            </span>
-                            <strong>{{ $enRiesgo }}</strong>
-                        </div>
-                    </div>
+            {{-- Resumen textual informativo debajo --}}
+            <div class="mt-4 pt-4 border-t border-blue-50 grid grid-cols-3 gap-3 text-center">
+                <div>
+                    <p class="text-lg font-bold text-emerald-600">{{ $excelentes }}</p>
+                    <p class="text-xs text-slate-500">Excelentes</p>
+                    <p class="text-[10px] text-emerald-500">≥ 90 pts</p>
+                </div>
+                <div class="border-x border-blue-50">
+                    <p class="text-lg font-bold text-blue-600">{{ $regulares }}</p>
+                    <p class="text-xs text-slate-500">Regulares</p>
+                    <p class="text-[10px] text-blue-500">70 - 89 pts</p>
+                </div>
+                <div>
+                    <p class="text-lg font-bold text-red-500">{{ $enRiesgo }}</p>
+                    <p class="text-xs text-slate-500">En riesgo</p>
+                    <p class="text-[10px] text-red-400">&lt; 70 pts</p>
                 </div>
             </div>
         </div>
