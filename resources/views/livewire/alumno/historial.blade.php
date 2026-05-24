@@ -12,6 +12,13 @@
     </div>
 
     {{-- RESUMEN GLOBAL --}}
+    @php
+        $maxReprobadas      = 3;
+        $reprobadasActual   = $resumen['reprobadas'];
+        $estatusPermIdx     = $reprobadasActual >= $maxReprobadas ? 'riesgo' : 'activo';
+        $colorEstatus       = $estatusPermIdx === 'activo' ? 'text-emerald-300' : 'text-red-300';
+        $labelEstatus       = $estatusPermIdx === 'activo' ? 'Activo' : 'En riesgo';
+    @endphp
     <div class="bg-gradient-to-br from-blue-700 to-blue-900 rounded-2xl p-5 text-white shadow-lg shadow-blue-900/20 relative overflow-hidden">
         <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
         <div class="relative">
@@ -43,6 +50,33 @@
                     <p class="text-xs text-blue-200">Créditos</p>
                     <p class="text-lg font-bold">{{ $resumen['creditos_aprobados'] }}</p>
                 </div>
+            </div>
+
+            {{--
+                PDF 1.2 — ISO 9241-11 (efectividad):
+                Indicador de permanencia académica con límite de materias reprobadas.
+                Dato crítico para planificación académica del alumno.
+            --}}
+            <div class="mt-4 pt-4 border-t border-white/20 flex items-center justify-between flex-wrap gap-2">
+                <div>
+                    <p class="text-xs text-blue-200 uppercase tracking-wide">Permanencia académica</p>
+                    <p class="text-sm font-semibold mt-0.5">
+                        Materias reprobadas:
+                        <span class="{{ $reprobadasActual >= $maxReprobadas ? 'text-red-300' : 'text-white' }} font-bold">
+                            {{ $reprobadasActual }}/{{ $maxReprobadas }}
+                        </span>
+                        máximo permitido
+                    </p>
+                </div>
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold
+                    {{ $estatusPermIdx === 'activo' ? 'bg-emerald-500/30 text-emerald-200 border border-emerald-400/40' : 'bg-red-500/30 text-red-200 border border-red-400/40' }}"
+                    title="{{ $estatusPermIdx === 'activo' ? 'Tu estatus de permanencia es estable' : 'Estás en límite de permanencia, consulta con tu tutor' }}">
+                    @if($estatusPermIdx === 'activo')
+                        ● Estatus: Activo
+                    @else
+                        ⚠ Estatus: En riesgo
+                    @endif
+                </span>
             </div>
         </div>
     </div>

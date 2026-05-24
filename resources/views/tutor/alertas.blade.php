@@ -21,11 +21,192 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
 
-        <div>
-            <h1 class="text-lg sm:text-xl font-bold text-blue-900">Centro de Alertas</h1>
-            <p class="text-sm text-blue-400 mt-0.5">Monitoreo de alumnos en riesgo</p>
+        {{-- Header con botón de configuración --}}
+        <div class="flex items-start justify-between gap-3">
+            <div>
+                <h1 class="text-lg sm:text-xl font-bold text-blue-900">Centro de Alertas</h1>
+                <p class="text-sm text-blue-400 mt-0.5">Monitoreo de alumnos en riesgo</p>
+            </div>
+
+            {{-- Botón + modal de config (Alpine independiente) --}}
+            <div x-data="{
+                configAbierta: false,
+                reglas: {{ $reglas->map(fn($r) => [
+                    'id'     => $r->id,
+                    'activa' => (bool)$r->activa,
+                    'umbral' => $r->umbral,
+                    'label'  => $r->descripcion,
+                    'prio'   => $r->prioridad_alerta,
+                ])->values()->toJson() }},
+                guardando: false,
+                guardado:  false,
+                errorMsg:  '',
+                csrfToken: '{{ csrf_token() }}',
+
+                async guardar() {
+                    this.guardando = true;
+                    this.guardado  = false;
+                    this.errorMsg  = '';
+                    try {
+                        const res = await fetch('{{ route('tutor.alertas.guardar-reglas') }}', {
+                            method:  'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': this.csrfToken,
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ reglas: this.reglas }),
+                        });
+                        const data = await res.json();
+                        if (data.ok) {
+                            this.guardado = true;
+                            setTimeout(() => { this.guardado = false; }, 3500);
+                        } else {
+                            this.errorMsg = 'No se pudo guardar.';
+                        }
+                    } catch (e) {
+                        this.errorMsg = 'Error de conexión.';
+                    } finally {
+                        this.guardando = false;
+                    }
+                }
+            }">
+                {{-- Botón disparador --}}
+                <button @click="configAbierta = true"
+                        class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-xl text-blue-700 text-sm font-medium hover:bg-blue-50 transition shadow-sm"
+                        title="Configurar umbrales de alerta">
+                    @svg('lucide-settings-2', 'w-4 h-4')
+                    Configurar reglas
+                </button>
+
+                {{-- Modal de configuración --}}
+                <div x-show="configAbierta"
+                     x-cloak
+                     @keydown.escape.window="configAbierta = false"
+                     class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-blue-950/60 backdrop-blur-sm p-0 sm:p-4"
+                     @click.self="configAbierta = false"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0">
+
+                    <div class="bg-white w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-8"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-8">
+
+                        {{-- Handle móvil --}}
+                        <div class="flex justify-center pt-3 pb-1 sm:hidden">
+                            <div class="w-10 h-1 bg-blue-200 rounded-full"></div>
+                        </div>
+
+                        {{-- Header del modal --}}
+                        <div class="flex items-start justify-between px-5 pt-4 pb-3 border-b border-blue-100 flex-shrink-0">
+                            <div class="flex items-center gap-3">
+                                @svg('lucide-sliders-horizontal', 'w-5 h-5 text-blue-400 flex-shrink-0')
+                                <div>
+                                    <h3 class="font-bold text-blue-900">Configurar Reglas de Alerta</h3>
+                                    <p class="text-xs text-blue-400 mt-0.5">Personaliza los umbrales según tu grupo académico</p>
+                                </div>
+                            </div>
+                            <button @click="configAbierta = false"
+                                    class="ml-4 p-1.5 rounded-lg text-blue-400 hover:bg-blue-50 hover:text-blue-600 transition flex-shrink-0"
+                                    title="Cerrar">
+                                @svg('lucide-x', 'w-5 h-5')
+                            </button>
+                        </div>
+
+                        {{-- Contenido scrollable --}}
+                        <div class="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+                            <template x-for="(regla, idx) in reglas" :key="regla.id">
+                                <div class="flex items-center gap-3 p-3 bg-blue-50/40 rounded-xl">
+                                    <input type="checkbox"
+                                           x-model="reglas[idx].activa"
+                                           class="w-4 h-4 rounded accent-blue-600 flex-shrink-0"
+                                           :aria-label="'Activar: ' + regla.label">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm text-slate-700" x-text="regla.label"></p>
+                                        <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                                            <span class="text-xs text-blue-500">Umbral:</span>
+                                            <input type="number"
+                                                   x-model.number="reglas[idx].umbral"
+                                                   min="0" max="100" step="0.5"
+                                                   :disabled="!reglas[idx].activa"
+                                                   :class="reglas[idx].activa
+                                                       ? 'border-blue-300 text-blue-800 bg-white'
+                                                       : 'border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed'"
+                                                   class="w-20 px-2 py-1 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400 transition"
+                                                   :aria-label="'Umbral para ' + regla.label">
+                                            <span class="text-xs text-blue-500">pts</span>
+                                            <span class="ml-1 px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize"
+                                                  :class="{
+                                                      'bg-red-100 text-red-600':     regla.prio === 'critica',
+                                                      'bg-amber-100 text-amber-600': regla.prio === 'media',
+                                                      'bg-blue-100 text-blue-600':   regla.prio === 'baja',
+                                                  }"
+                                                  x-text="'Prioridad: ' + regla.prio"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            @if($reglas->isEmpty())
+                                <p class="text-sm text-slate-400">Sin reglas configuradas</p>
+                            @endif
+                        </div>
+
+                        {{-- Footer del modal --}}
+                        <div class="flex items-center gap-3 px-5 py-4 border-t border-blue-100 flex-shrink-0">
+                            <button @click="guardar()"
+                                    :disabled="guardando"
+                                    class="px-5 py-2 bg-blue-600 text-white text-sm font-medium
+                                           rounded-xl hover:bg-blue-700 disabled:opacity-50 transition
+                                           flex items-center gap-2">
+                                <span x-show="!guardando" class="flex items-center gap-2">
+                                    @svg('lucide-save', 'w-4 h-4')
+                                    Guardar Configuración
+                                </span>
+                                <span x-show="guardando" class="flex items-center gap-2">
+                                    @svg('lucide-loader-2', 'w-4 h-4 animate-spin')
+                                    Guardando...
+                                </span>
+                            </button>
+
+                            <button @click="configAbierta = false"
+                                    class="px-4 py-2 text-sm text-blue-600 font-medium hover:underline transition">
+                                Cerrar
+                            </button>
+
+                            {{-- Toast de confirmación --}}
+                            <span x-show="guardado"
+                                  x-cloak
+                                  x-transition:enter="transition ease-out duration-200"
+                                  x-transition:enter-start="opacity-0 translate-y-1"
+                                  x-transition:enter-end="opacity-100 translate-y-0"
+                                  x-transition:leave="transition ease-in duration-150"
+                                  x-transition:leave-start="opacity-100"
+                                  x-transition:leave-end="opacity-0"
+                                  class="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
+                                @svg('lucide-check-circle-2', 'w-4 h-4')
+                                Configuración guardada
+                            </span>
+
+                            <span x-show="errorMsg"
+                                  class="text-sm text-red-600 font-medium"
+                                  x-text="errorMsg"></span>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
         </div>
 
+        {{-- Componente principal de alertas --}}
         <div x-data="{
             prioridad: '',
             estado: '',
@@ -156,14 +337,16 @@
                                     <p class="text-xs text-slate-400 mt-1" x-text="'Generada: ' + a.fecha"></p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2 flex-shrink-0">
+                            {{-- En móvil los botones se apilan verticalmente (ISO 9241-210 adaptación táctil) --}}
+                            <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
                                 <a :href="urlBase + '/' + a.alumno_id"
                                    :aria-label="'Ver detalle de ' + a.nombre"
-                                   class="text-xs text-blue-600 font-medium hover:underline">Ver detalle</a>
-                                <span class="text-slate-200">|</span>
+                                   title="Ver historial completo del alumno"
+                                   class="text-xs text-blue-600 font-medium hover:underline whitespace-nowrap">Ver detalle</a>
                                 <button @click="marcarAtendida(a)"
+                                        title="Confirmar que esta alerta fue atendida"
                                         class="px-3 py-1.5 border border-blue-200 rounded-lg text-blue-600
-                                               text-xs font-medium hover:bg-blue-50 transition">
+                                               text-xs font-medium hover:bg-blue-50 transition whitespace-nowrap">
                                     Marcar atendida
                                 </button>
                             </div>
@@ -190,13 +373,15 @@
                                     <p class="text-xs text-slate-400 mt-1" x-text="'Generada: ' + a.fecha"></p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2 flex-shrink-0">
+                            <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
                                 <a :href="urlBase + '/' + a.alumno_id"
                                    :aria-label="'Ver detalle de ' + a.nombre"
-                                   class="text-xs text-blue-600 font-medium hover:underline">Ver detalle</a>
+                                   title="Ver historial completo del alumno"
+                                   class="text-xs text-blue-600 font-medium hover:underline whitespace-nowrap">Ver detalle</a>
                                 <button @click="marcarAtendida(a)"
+                                        title="Confirmar que esta alerta fue atendida"
                                         class="px-3 py-1.5 border border-blue-200 rounded-lg text-blue-600
-                                               text-xs font-medium hover:bg-blue-50 transition">
+                                               text-xs font-medium hover:bg-blue-50 transition whitespace-nowrap">
                                     Marcar atendida
                                 </button>
                             </div>
@@ -223,13 +408,15 @@
                                     <p class="text-xs text-slate-400 mt-1" x-text="'Generada: ' + a.fecha"></p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2 flex-shrink-0">
+                            <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
                                 <a :href="urlBase + '/' + a.alumno_id"
                                    :aria-label="'Ver detalle de ' + a.nombre"
-                                   class="text-xs text-blue-600 font-medium hover:underline">Ver detalle</a>
+                                   title="Ver historial completo del alumno"
+                                   class="text-xs text-blue-600 font-medium hover:underline whitespace-nowrap">Ver detalle</a>
                                 <button @click="marcarAtendida(a)"
+                                        title="Confirmar que esta alerta fue atendida"
                                         class="px-3 py-1.5 border border-blue-200 rounded-lg text-blue-600
-                                               text-xs font-medium hover:bg-blue-50 transition">
+                                               text-xs font-medium hover:bg-blue-50 transition whitespace-nowrap">
                                     Marcar atendida
                                 </button>
                             </div>
@@ -288,6 +475,7 @@
                                                   'bg-amber-100 text-amber-600': a.prioridad === 'media',
                                                   'bg-blue-100 text-blue-600':   a.prioridad === 'baja',
                                               }"
+                                              :title="a.prioridad === 'critica' ? 'Crítica: requiere atención inmediata' : (a.prioridad === 'media' ? 'Media: monitorear esta semana' : 'Baja: seguimiento periódico')"
                                               x-text="a.prioridad">
                                         </span>
                                     </td>
@@ -329,135 +517,6 @@
                     <span class="text-xs text-slate-400">
                         Total: <span x-text="filtradas.length"></span> alertas
                     </span>
-                </div>
-            </div>
-
-            {{-- ════════════════════════════════════════════════════
-                 CONFIGURAR REGLAS — PDF #6: ISO 9241-210
-                 Sección separada del flujo de gestión de alertas.
-                 Umbrales editables + toast de confirmación.
-                 ════════════════════════════════════════════════════ --}}
-            <div class="bg-white rounded-2xl border border-blue-100 p-5 shadow-sm"
-                 x-data="{
-                     reglas: {{ $reglas->map(fn($r) => [
-                         'id'     => $r->id,
-                         'activa' => (bool)$r->activa,
-                         'umbral' => $r->umbral,
-                         'label'  => $r->descripcion,
-                         'prio'   => $r->prioridad_alerta,
-                     ])->values()->toJson() }},
-                     guardando: false,
-                     guardado:  false,
-                     errorMsg:  '',
-                     csrfToken: '{{ csrf_token() }}',
-
-                     async guardar() {
-                         this.guardando = true;
-                         this.guardado  = false;
-                         this.errorMsg  = '';
-                         try {
-                             const res = await fetch('{{ route('tutor.alertas.guardar-reglas') }}', {
-                                 method:  'POST',
-                                 headers: {
-                                     'X-CSRF-TOKEN': this.csrfToken,
-                                     'Content-Type': 'application/json',
-                                 },
-                                 body: JSON.stringify({ reglas: this.reglas }),
-                             });
-                             const data = await res.json();
-                             if (data.ok) {
-                                 this.guardado = true;
-                                 setTimeout(() => { this.guardado = false; }, 3500);
-                             } else {
-                                 this.errorMsg = 'No se pudo guardar.';
-                             }
-                         } catch (e) {
-                             this.errorMsg = 'Error de conexión.';
-                         } finally {
-                             this.guardando = false;
-                         }
-                     }
-                 }">
-
-                <div class="flex items-start justify-between mb-4">
-                    <div>
-                        <h3 class="font-bold text-blue-900">Configurar Reglas de Alerta</h3>
-                        <p class="text-xs text-blue-400 mt-0.5">
-                            Personaliza los umbrales según los criterios de tu grupo académico
-                        </p>
-                    </div>
-                    @svg('lucide-sliders-horizontal', 'w-4 h-4 text-blue-400 flex-shrink-0 mt-1')
-                </div>
-
-                <div class="space-y-3">
-                    <template x-for="(regla, idx) in reglas" :key="regla.id">
-                        <div class="flex items-center gap-3 p-3 bg-blue-50/40 rounded-xl">
-                            <input type="checkbox"
-                                   x-model="reglas[idx].activa"
-                                   class="w-4 h-4 rounded accent-blue-600 flex-shrink-0"
-                                   :aria-label="'Activar: ' + regla.label">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm text-slate-700" x-text="regla.label"></p>
-                                <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                                    <span class="text-xs text-blue-500">Umbral:</span>
-                                    {{-- PDF #6: Campo numérico editable para el umbral --}}
-                                    <input type="number"
-                                           x-model.number="reglas[idx].umbral"
-                                           min="0" max="100" step="0.5"
-                                           :disabled="!reglas[idx].activa"
-                                           :class="reglas[idx].activa
-                                               ? 'border-blue-300 text-blue-800 bg-white'
-                                               : 'border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed'"
-                                           class="w-20 px-2 py-1 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400 transition"
-                                           :aria-label="'Umbral para ' + regla.label">
-                                    <span class="text-xs text-blue-500">pts</span>
-                                    <span class="ml-1 px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize"
-                                          :class="{
-                                              'bg-red-100 text-red-600':    regla.prio === 'critica',
-                                              'bg-amber-100 text-amber-600': regla.prio === 'media',
-                                              'bg-blue-100 text-blue-600':  regla.prio === 'baja',
-                                          }"
-                                          x-text="'Prioridad: ' + regla.prio"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-
-                    @if($reglas->isEmpty())
-                        <p class="text-sm text-slate-400">Sin reglas configuradas</p>
-                    @endif
-                </div>
-
-                <div class="flex items-center gap-3 mt-5 pt-4 border-t border-blue-50">
-                    <button @click="guardar()"
-                            :disabled="guardando"
-                            class="px-5 py-2 bg-blue-600 text-white text-sm font-medium
-                                   rounded-xl hover:bg-blue-700 disabled:opacity-50 transition
-                                   flex items-center gap-2">
-                        <span x-show="!guardando" class="flex items-center gap-2">
-                            @svg('lucide-save', 'w-4 h-4')
-                            Guardar Configuración
-                        </span>
-                        <span x-show="guardando" class="flex items-center gap-2">
-                            @svg('lucide-loader-2', 'w-4 h-4 animate-spin')
-                            Guardando...
-                        </span>
-                    </button>
-
-                    {{-- Toast de confirmación: Nielsen H1 --}}
-                    <span x-show="guardado" x-cloak
-                          x-transition:enter="transition ease-out duration-200"
-                          x-transition:enter-start="opacity-0 translate-y-1"
-                          x-transition:enter-end="opacity-100 translate-y-0"
-                          x-transition:leave="transition ease-in duration-150"
-                          x-transition:leave-start="opacity-100"
-                          x-transition:leave-end="opacity-0"
-                          class="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
-                        @svg('lucide-check-circle-2', 'w-4 h-4')
-                        Configuración guardada
-                    </span>
-
-                    <span x-show="errorMsg" class="text-sm text-red-600 font-medium" x-text="errorMsg"></span>
                 </div>
             </div>
 
