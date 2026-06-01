@@ -31,8 +31,17 @@ class Router
 
     public function dispatch(): void
     {
-        $method = requestMethod();
-        $path   = '/' . trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+        $method  = requestMethod();
+        $rawPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+        // Quitar el prefijo del subdirectorio (APP_URL) para que las rutas
+        // funcionen igual en raíz (/) y en subdir (/Simulation_Tutoria/)
+        $base = defined('APP_URL') ? APP_URL : '';
+        if ($base !== '' && str_starts_with($rawPath, $base)) {
+            $rawPath = substr($rawPath, strlen($base));
+        }
+
+        $path = '/' . trim($rawPath, '/');
         if ($path === '/') $path = '/';
 
         foreach ($this->routes as [$routeMethod, $routePath, $handler]) {
