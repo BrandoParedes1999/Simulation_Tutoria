@@ -1,0 +1,23 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Necesario para WAMP/subdirectorios: ajusta si el proyecto NO está en la raíz
+    # Ejemplo si está en localhost/Simulation_Tutoria/ → RewriteBase /Simulation_Tutoria/
+    # Ejemplo si está en la raíz                      → RewriteBase /
+    RewriteBase /
+
+    # No redirigir si es un archivo o directorio real
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Todo lo demás → index.php
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# Bloquear acceso a archivos sensibles
+<FilesMatch "\.(env|log|sh|yml|yaml)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
