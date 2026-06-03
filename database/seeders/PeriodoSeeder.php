@@ -19,8 +19,8 @@ class PeriodoSeeder extends Seeder {
                 ? Carbon::create($year, 6, 30)
                 : Carbon::create($year, 12, 15),
             'fecha_limite_inscripcion' => $semestre === 1
-                ? Carbon::create($year, 1, 30)
-                : Carbon::create($year, 8, 15),
+                ? Carbon::create($year, 6, 30)
+                : Carbon::create($year, 12, 15),
             'fecha_limite_baja' => $semestre === 1
                 ? Carbon::create($year, 4, 30)
                 : Carbon::create($year, 10, 30),
