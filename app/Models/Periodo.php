@@ -2,8 +2,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class Periodo extends Model {
+
+    protected static function booted(): void
+    {
+        static::saved(fn() => Cache::forget('periodo_actual'));
+        static::deleted(fn() => Cache::forget('periodo_actual'));
+    }
+
     protected $table = 'periodos';
 
     protected $fillable = [
